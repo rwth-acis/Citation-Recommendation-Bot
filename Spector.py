@@ -5,7 +5,9 @@ import torch
 
 
 class Dataset:
-    def __init__(self, source_collection, target_collection, batch_size, max_length=512):
+    def __init__(
+        self, source_collection, target_collection, batch_size, max_length=512
+    ):
         self.tokenizer = AutoTokenizer.from_pretrained("allenai/specter")
         self.max_length = max_length
         self.batch_size = batch_size
@@ -26,8 +28,8 @@ class Dataset:
         for d in self.documents:
             if (i) % batch_size != 0 or i == 0:
                 batch.append((d.get("title") or "") + " " + (d.get("abstract") or ""))
-                d.pop('title', None)
-                d.pop('abstract', None)
+                d.pop("title", None)
+                d.pop("abstract", None)
                 batch_ids.append(d)
             else:
                 input_ids = self.tokenizer(
@@ -41,8 +43,8 @@ class Dataset:
                 batch = []
                 batch_ids = []
                 batch.append((d.get("title") or "") + " " + (d.get("abstract") or ""))
-                d.pop('title', None)
-                d.pop('abstract', None)
+                d.pop("title", None)
+                d.pop("abstract", None)
                 batch_ids.append(d)
             i += 1
         if len(batch) > 0:
@@ -73,14 +75,18 @@ def main():
     torch.cuda.empty_cache()
     # connect to the MongoDB
     # use command ifconfic to get the ethernet IP
-    client = pymongo.MongoClient('134.61.193.185:27017')
+    client = pymongo.MongoClient("134.61.193.185:27017")
     # set collections
-    db = client['BA']
-    source_collection = db['Filtered']
-    target_collection = db['Spector']
+    db = client["BA"]
+    source_collection = db["Filtered"]
+    target_collection = db["Spector"]
     # set bach size
     batch_size = 16
-    dataset = Dataset(source_collection=source_collection, target_collection=target_collection, batch_size=batch_size)
+    dataset = Dataset(
+        source_collection=source_collection,
+        target_collection=target_collection,
+        batch_size=batch_size,
+    )
     model = Model()
     for batch, batch_ids in tqdm(
         dataset.batches(), total=len(dataset) // batch_size + 1
@@ -90,7 +96,6 @@ def main():
         for i, embedding in enumerate(embeddings):
             batch_ids[i]["embedding"] = embedding
         target_collection.insert(batch_ids)
-
 
 
 if __name__ == "__main__":
