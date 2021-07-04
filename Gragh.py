@@ -49,8 +49,8 @@ def main():
     # use command ifconfic to get the ethernet IP
     client = pymongo.MongoClient("134.61.193.185:27017")
     # set collections
-    db = client["BA"]
-    collection = db["Filtered"]
+    db = client["CitRec"]
+    collection = db["Graph"]
     data_nodes = collection.find({}, {"_id": 1})
     data_edges = collection.find(
         {"references": {"$exists": True}}, {"_id": 1, "references": 1}

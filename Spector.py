@@ -39,7 +39,7 @@ class Dataset:
                     return_tensors="pt",
                     max_length=self.max_length,
                 )
-                yield input_ids.to("cuda"), batch_ids
+                yield input_ids.to("cuda" if torch.cuda.is_available() else "cpu"), batch_ids
                 batch = []
                 batch_ids = []
                 batch.append((d.get("title") or "") + " " + (d.get("abstract") or ""))
@@ -55,14 +55,14 @@ class Dataset:
                 return_tensors="pt",
                 max_length=self.max_length,
             )
-            input_ids = input_ids.to("cuda")
+            input_ids = input_ids.to("cuda" if torch.cuda.is_available() else "cpu")
             yield input_ids, batch_ids
 
 
 class Model:
     def __init__(self):
         self.model = AutoModel.from_pretrained("allenai/specter")
-        self.model.to("cuda")
+        self.model.to("cuda" if torch.cuda.is_available() else "cpu")
         self.model.eval()
 
     def __call__(self, input_ids):
@@ -77,8 +77,8 @@ def main():
     # use command ifconfic to get the ethernet IP
     client = pymongo.MongoClient("134.61.193.185:27017")
     # set collections
-    db = client["BA"]
-    source_collection = db["Filtered"]
+    db = client["CitRec"]
+    source_collection = db["Context"]
     target_collection = db["Spector"]
     # set bach size
     batch_size = 16
