@@ -26,7 +26,7 @@ class Dataset:
         batch_size = self.batch_size
         i = 0
         for d in self.documents:
-            if (i) % batch_size != 0 or i == 0:
+            if i % batch_size != 0 or i == 0:
                 batch.append((d.get("title") or "") + " " + (d.get("abstract") or ""))
                 d.pop("title", None)
                 d.pop("abstract", None)
