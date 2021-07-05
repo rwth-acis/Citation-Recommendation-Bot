@@ -90,10 +90,10 @@ def test_relevance():
         {"_id": 0, "relevances": [6]},
         {"_id": 1, "relevances": [3]},
         {"_id": 2, "relevances": [4, 5]},
-        {"_id": 3, },
+        {"_id": 3,},
         {"_id": 4, "relevances": [5]},
-        {"_id": 5, },
-        {"_id": 6, },
+        {"_id": 5,},
+        {"_id": 6,},
     ]
 
     real_res = collection.find({}, {"_id": 1, "relevances": 1})
@@ -101,3 +101,6 @@ def test_relevance():
     for d_right, d_real in zip(right_res, real_res):
         assert d_right["_id"] == d_real["_id"]
         assert d_right.get("relevances", None) == d_real.get("relevances", None)
+
+    # delete test collection after testing
+    collection.drop()

@@ -29,4 +29,10 @@ mongoimport --db CitRec --collection AMiner --jsonArray --file <path>/dblpv13.js
     It may run more then ten hours.
     The generated embedding is in collection `Spector`
 
-
+## Create paper-paper graph
+1. Create a collection `Graph` only contains `_id`, `references` of the papers.
+    ```bash
+    var temp = db.AMiner.find({}, {_id: 1, references: 1});
+    while(temp.hasNext()) db.Graph.insert(temp.next());
+    ```
+2. Link relevant papers.

@@ -39,7 +39,9 @@ class Dataset:
                     return_tensors="pt",
                     max_length=self.max_length,
                 )
-                yield input_ids.to("cuda" if torch.cuda.is_available() else "cpu"), batch_ids
+                yield input_ids.to(
+                    "cuda" if torch.cuda.is_available() else "cpu"
+                ), batch_ids
                 batch = []
                 batch_ids = []
                 batch.append((d.get("title") or "") + " " + (d.get("abstract") or ""))
