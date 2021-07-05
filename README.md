@@ -11,15 +11,14 @@ A slack chatbot that can recommend citation.
 - pymongo: `pip install pymongo`
 - tqdm: `pip install tqdm`
 - pytorch
-### Dataset
 
-#### Import dataset
+### Import dataset
 [Download the AMiner dataset](https://www.aminer.org/citation) (current version: v13) at first, and then import it to MongoDB with database name `CitRec` and collection name `AMiner`.
 To import, please use following shell command:
 ```bash
 mongoimport --db CitRec --collection AMiner --jsonArray --file <path>/dblpv13.json
 ```
-#### Generate paper content embedding
+### Generate paper content embedding
 1. Create a collection `Context` only contains `_id`, `title`, `abstract` of the papers.
     ```
     var temp = db.AMiner.find({}, {_id: 1, title: 1, abstract: 1});
