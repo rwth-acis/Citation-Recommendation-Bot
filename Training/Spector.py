@@ -72,7 +72,7 @@ class Model:
         return output.last_hidden_state[:, 0, :]  # cls token
 
 
-def main():
+if __name__ == "__main__":
     # empty cache
     torch.cuda.empty_cache()
     # connect to the MongoDB
@@ -98,7 +98,3 @@ def main():
         for i, embedding in enumerate(embeddings):
             batch_ids[i]["embedding"] = embedding
         target_collection.insert(batch_ids)
-
-
-if __name__ == "__main__":
-    main()

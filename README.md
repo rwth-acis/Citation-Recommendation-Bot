@@ -10,6 +10,7 @@ A slack chatbot that can recommend citation.
 - Huggingface Transformers Library: `pip install transformers==4.2`
 - pymongo: `pip install pymongo`
 - tqdm: `pip install tqdm`
+- node2vec: `pip install node2vec`
 - pytorch
 
 ### Import dataset

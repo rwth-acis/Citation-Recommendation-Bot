@@ -1,6 +1,5 @@
 import sys
 import os
-from pymongo import collation, collection
 
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
@@ -71,7 +70,7 @@ def example(collection):
     for i, embedding in enumerate(embeddings):
         documents.append({"_id": i, "embedding": embedding})
 
-    collection.insert(documents)
+    collection.insert_many(documents)
 
 
 def test_relevance():
@@ -79,12 +78,19 @@ def test_relevance():
     # set collections
     db = client["CitRec"]
     collection = db["RelevanceTest"]
-    # example(collection)
-    documents = collection.find()
+    example(collection)
 
-    link_relevance(
-        documents=documents, threshold=0.85, batch_size=2, target_collection=collection
-    )
+    for i in range(0, collection.find().count(), 2):
+        link_relevance(
+            server="134.61.193.185:27017",
+            database="CitRec",
+            source_collection_name="RelevanceTest",
+            target_collection_name="RelevanceTest",
+            threshold=0.85,
+            batch_size=2,
+            start_ind=i,
+            end_ind=i + 2,
+        )
 
     right_res = [
         {"_id": 0, "relevances": [6]},

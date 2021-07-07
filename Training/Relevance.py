@@ -1,6 +1,8 @@
 import torch
 import pymongo
 import tqdm
+from multiprocessing import cpu_count
+from multiprocessing import Pool, Lock
 
 
 class CosineSimilarity(torch.nn.Module):
@@ -18,19 +20,33 @@ class CosineSimilarity(torch.nn.Module):
         return final
 
 
-def link_relevance(documents, threshold, batch_size, target_collection):
+def link_relevance(
+    server,
+    database,
+    source_collection_name,
+    target_collection_name,
+    threshold,
+    batch_size,
+    start_ind,
+    end_ind,
+):
 
-    cos = CosineSimilarity().to("cuda" if torch.cuda.is_available() else "cpu")
-    # cos = CosineSimilarity().to("cpu")
+    # for test
+    # cos = CosineSimilarity().to("cuda" if torch.cuda.is_available() else "cpu")
 
-    pbar = tqdm.tqdm(total=documents.count())
-    pbar.set_description("Link relevant papers")
-    for i, d_x2 in enumerate(documents.clone()):
+    client = pymongo.MongoClient(server)
+    # set collections
+    db = client[database]
+    target_collection = db[target_collection_name]
+    source_collection = db[source_collection_name]
+    documents = source_collection.find()
+
+    for i, d_x2 in enumerate(documents.clone()[start_ind:end_ind]):
         x2 = torch.Tensor(d_x2["embedding"]).reshape(-1, 1)
         id_x2 = d_x2["_id"]
         x1 = []
         j, k = 0, 0
-        for d_x1 in documents.clone()[(i + 1) :]:
+        for d_x1 in documents.clone()[(start_ind + i + 1) :]:
             if j != batch_size:
                 x1.append(d_x1["embedding"])
             else:
@@ -41,9 +57,13 @@ def link_relevance(documents, threshold, batch_size, target_collection):
                 add_list = []
                 for batch_ind, res in enumerate(batch_result):
                     if res >= threshold:
-                        id_x1 = documents.clone()[i + 1 + (k * batch_size) + batch_ind]["_id"]
+                        id_x1 = documents.clone()[start_ind + i + 1 + (k * batch_size) + batch_ind]["_id"]
                         add_list.append(id_x1)
-                target_collection.update_one({"_id": id_x2}, {"$addToSet": {"relevances": {"$each": add_list}}})
+                if add_list:
+                    target_collection.update_one(
+                        {"_id": id_x2},
+                        {"$addToSet": {"relevances": {"$each": add_list}}},
+                    )
                 k += 1
                 x1.append(d_x1["embedding"])
             j += 1
@@ -53,26 +73,59 @@ def link_relevance(documents, threshold, batch_size, target_collection):
             add_list = []
             for batch_ind, res in enumerate(batch_result):
                 if res >= threshold:
-                    id_x1 = documents.clone()[i + 1 + (k * batch_size) + batch_ind]["_id"]
+                    id_x1 = documents.clone()[start_ind + i + 1 + (k * batch_size) + batch_ind]["_id"]
                     add_list.append(id_x1)
-                target_collection.update_one({"_id": id_x2}, {"$addToSet": {"relevances": {"$each": add_list}}})
-                
-        #if i % 10000 == 0:
-        pbar.update(1)
+                if add_list:
+                    target_collection.update_one(
+                        {"_id": id_x2},
+                        {"$addToSet": {"relevances": {"$each": add_list}}},
+                    )
 
-    pbar.close()
+    # for test set the following as conmments
+    mutex.acquire()
+    pbar.update(end_ind - start_ind)
+    mutex.release()
 
-
-def main():
-    client = pymongo.MongoClient("134.61.193.185:27017")
-    # set collections
-    db = client["CitRec"]
-    collection = db["Graph"]
-    documents = db["Spector"].find()[:100000]
-    link_relevance(
-        documents, threshold=0.85, batch_size=100000, target_collection=collection
-    )
+    client.close()
 
 
 if __name__ == "__main__":
-    main()
+
+    server = "134.61.193.185:27017"
+    database = "CitRec"
+    source_collection_name = "Spector"
+    target_collection_name = "Graph"
+    workers = cpu_count() * 2
+    threshold = 0.85
+    batch_size = 10000
+    step_size = 10000
+
+    cos = CosineSimilarity().to("cuda" if torch.cuda.is_available() else "cpu")
+    # cos = CosineSimilarity().to("cpu")
+    mutex = Lock()
+
+    client_for_total = pymongo.MongoClient(server)
+    total = client_for_total[database][source_collection_name].find().count()
+    pbar = tqdm.tqdm(total=total)
+    pbar.set_description("Link relevant papers")
+    client_for_total.close()
+
+    p = Pool(workers)
+    for i in range(0, total, step_size):
+        p.apply_async(
+            link_relevance,
+            args=(
+                server,
+                database,
+                source_collection_name,
+                target_collection_name,
+                threshold,
+                batch_size,
+                i,
+                i + step_size, 
+            ),
+            callback=lambda _: pbar.update(step_size),
+        )
+
+    p.close()
+    p.join()

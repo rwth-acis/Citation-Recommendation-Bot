@@ -44,7 +44,7 @@ class Graph(nx.Graph):
             pbar.close()
 
 
-def main():
+if __name__ == "__main__":
     # connect to the MongoDB
     # use command ifconfic to get the ethernet IP
     client = pymongo.MongoClient("134.61.193.185:27017")
@@ -58,7 +58,3 @@ def main():
     graph = Graph()
     graph.add_nodes_from_docs(data_nodes)
     graph.add_edges_from_docs(data_edges, 16)
-
-
-if __name__ == "__main__":
-    main()
