@@ -74,22 +74,24 @@ def example(collection):
 
 
 def test_relevance():
+# if __name__ == "__main__":
     client = pymongo.MongoClient("134.61.193.185:27017")
     # set collections
     db = client["CitRec"]
     collection = db["RelevanceTest"]
     example(collection)
 
-    for i in range(0, collection.find().count(), 2):
+    for i in range(0, collection.find().count(), 4):
         link_relevance(
             server="134.61.193.185:27017",
             database="CitRec",
             source_collection_name="RelevanceTest",
             target_collection_name="RelevanceTest",
+            n_threads=2,
             threshold=0.85,
             batch_size=2,
             start_ind=i,
-            end_ind=i + 2,
+            end_ind=i + 4,
         )
 
     right_res = [
