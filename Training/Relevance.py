@@ -20,8 +20,7 @@ class CosineSimilarity(torch.nn.Module):
         final = x.mul(1 / x_frobenins)
         return final
 
-# for line profiler
-@profile
+
 def link_relevance(
     server,
     database,
@@ -46,15 +45,19 @@ def link_relevance(
     source_collection = db[source_collection_name]
     documents = source_collection.find()
 
+    @profile
     def link_relevance_thread(start_ind_thread, end_ind_thread):
         for i, d_x2 in enumerate(documents.clone()[start_ind_thread:end_ind_thread]):
             x2 = torch.Tensor(d_x2["embedding"]).reshape(-1, 1)
             id_x2 = d_x2["_id"]
             x1 = []
-            j, k = 0, 0
-            for d_x1 in documents.clone()[(start_ind_thread + i + 1) :]:
+            id_x1 = []
+            j = 0
+            # The most time-consuming line
+            for d_x1 in documents.clone()[(start_ind_thread + i + 1):]:
                 if j != batch_size:
                     x1.append(d_x1["embedding"])
+                    id_x1.append(d_x1["_id"])
                 else:
                     x1 = torch.Tensor(x1)
                     batch_result = cos(x1, x2)
@@ -63,14 +66,14 @@ def link_relevance(
                     add_list = []
                     for batch_ind, res in enumerate(batch_result):
                         if res >= threshold:
-                            id_x1 = documents.clone()[start_ind_thread + i + 1 + (k * batch_size) + batch_ind]["_id"]
-                            add_list.append(id_x1)
+                            add_list.append(id_x1[batch_ind])
                     if add_list:
                         target_collection.update_one(
                             {"_id": id_x2},
                             {"$addToSet": {"relevances": {"$each": add_list}}},
                         )
-                    k += 1
+                    add_list = []
+                    id_x1 = []
                     x1.append(d_x1["embedding"])
                 j += 1
             if len(x1) > 0:
@@ -79,13 +82,13 @@ def link_relevance(
                 add_list = []
                 for batch_ind, res in enumerate(batch_result):
                     if res >= threshold:
-                        id_x1 = documents.clone()[start_ind_thread + i + 1 + (k * batch_size) + batch_ind]["_id"]
-                        add_list.append(id_x1)
-                    if add_list:
+                        add_list.append(id_x1[batch_ind])
+                if add_list:
                         target_collection.update_one(
                             {"_id": id_x2},
                             {"$addToSet": {"relevances": {"$each": add_list}}},
                         )
+                add_list = []
 
     all_task = []
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
@@ -94,7 +97,7 @@ def link_relevance(
             all_task.append(executor.submit(link_relevance_thread, start_ind_thread, start_ind_thread + step))
         all_task.append(executor.submit(link_relevance_thread, end_ind - ((end_ind - start_ind) % step), end_ind))
 
-    print(wait(all_task))
+    print(wait(all_task, return_when=ALL_COMPLETED))
 
     client.close()
 
