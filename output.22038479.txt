@@ -1,2 +1,0 @@
-numactl: execution of `mongod': No such file or directory
-

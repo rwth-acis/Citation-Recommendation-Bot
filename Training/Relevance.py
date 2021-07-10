@@ -20,7 +20,8 @@ class CosineSimilarity(torch.nn.Module):
         final = x.mul(1 / x_frobenins)
         return final
 
-
+# for line profiler
+@profile
 def link_relevance(
     server,
     database,
@@ -105,7 +106,7 @@ def throw_error(e):
 
 if __name__ == "__main__":
 
-    server = "134.61.193.185:27017"
+    server = "mongodb://localhost:27017/"
     database = "CitRec"
     source_collection_name = "Spector"
     target_collection_name = "Graph"
