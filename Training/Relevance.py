@@ -3,7 +3,6 @@ import pymongo
 import tqdm
 from multiprocessing import Pool
 import os, signal
-from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
 
 class CosineSimilarity(torch.nn.Module):
@@ -26,14 +25,12 @@ def link_relevance(
     database,
     source_collection_name,
     target_collection_name,
-    n_threads,
     threshold,
     batch_size,
     start_ind,
-    end_ind,
 ):
 
-    # # Using GPU leads to long waiting time
+    # Using GPU leads to long waiting time
     cos = CosineSimilarity().to("cpu")
     # cos = CosineSimilarity().to("cuda" if torch.cuda.is_available() else "cpu")
     # cos = torch.nn.DataParallel(cos)
@@ -45,66 +42,84 @@ def link_relevance(
     source_collection = db[source_collection_name]
     documents = source_collection.find()
 
-    @profile
-    def link_relevance_thread(start_ind_thread, end_ind_thread):
-        for i, d_x2 in enumerate(documents.clone()[start_ind_thread:end_ind_thread]):
-            x2 = torch.Tensor(d_x2["embedding"]).reshape(-1, 1)
-            id_x2 = d_x2["_id"]
-            x1 = []
-            id_x1 = []
-            j = 0
-            # The most time-consuming line
-            for d_x1 in documents.clone()[(start_ind_thread + i + 1):]:
-                if j != batch_size:
-                    x1.append(d_x1["embedding"])
-                    id_x1.append(d_x1["_id"])
-                else:
-                    x1 = torch.Tensor(x1)
-                    batch_result = cos(x1, x2)
-                    x1 = []
-                    j = 0
-                    add_list = []
-                    for batch_ind, res in enumerate(batch_result):
-                        if res >= threshold:
-                            add_list.append(id_x1[batch_ind])
-                    if add_list:
-                        target_collection.update_one(
-                            {"_id": id_x2},
-                            {"$addToSet": {"relevances": {"$each": add_list}}},
-                        )
-                    add_list = []
-                    id_x1 = []
-                    x1.append(d_x1["embedding"])
-                j += 1
-            if len(x1) > 0:
-                x1 = torch.Tensor(x1)
+
+    # extract docments for batch operations
+    x2_batch = []
+    id_x2_batch = []     
+    for d_x2 in documents.clone()[
+        start_ind : (start_ind + batch_size)
+        ]:
+        x2_batch.append(d_x2["embedding"])
+        id_x2_batch.append(d_x2["_id"])
+    # transform x2_batch to tensor
+    x2_batch = torch.Tensor(x2_batch)
+    # calculate cos_sim for docs in batch_doccs
+    for i, x2_batch_x2 in enumerate(x2_batch):
+        x2_batch_x2 = x2_batch_x2.reshape(-1, 1)
+        x2_batch_x1 = x2_batch[i + 1 :]
+        batch_result = cos(x2_batch_x1, x2_batch_x2)
+        add_list = []
+        batch_result = torch.ge(batch_result, threshold).nonzero(as_tuple=True)[0]
+        for batch_ind in batch_result:
+            add_list.append(id_x2_batch[i + 1 + batch_ind])
+        if add_list:
+            target_collection.update_one(
+                {"_id": id_x2_batch[i]},
+                {"$addToSet": {"relevances": {"$each": add_list}}},
+            )
+        add_list = []
+
+    # calculate cos_sim between batch_docs and other docs
+    x1 = []
+    id_x1 = []
+    j = 0
+    for d_x1 in documents.clone()[(start_ind + batch_size):]:
+        if j != batch_size:
+            x1.append(d_x1["embedding"])
+            id_x1.append(d_x1["_id"])
+        else:
+            x1 = torch.Tensor(x1)
+            for i, x2 in enumerate(x2_batch):
+                x2 = x2.reshape(-1, 1)
                 batch_result = cos(x1, x2)
                 add_list = []
-                for batch_ind, res in enumerate(batch_result):
-                    if res >= threshold:
+                batch_result = torch.ge(batch_result, threshold).nonzero(as_tuple=True)[0]
+                for batch_ind in batch_result:
                         add_list.append(id_x1[batch_ind])
                 if add_list:
-                        target_collection.update_one(
-                            {"_id": id_x2},
-                            {"$addToSet": {"relevances": {"$each": add_list}}},
-                        )
+                    target_collection.update_one(
+                        {"_id": id_x2_batch[i]},
+                        {"$addToSet": {"relevances": {"$each": add_list}}},
+                    )
                 add_list = []
-
-    all_task = []
-    with ThreadPoolExecutor(max_workers=n_threads) as executor:
-        step = (end_ind - start_ind) // n_threads + 1
-        for start_ind_thread in range(start_ind, start_ind + (end_ind - start_ind) // step * step, step):
-            all_task.append(executor.submit(link_relevance_thread, start_ind_thread, start_ind_thread + step))
-        all_task.append(executor.submit(link_relevance_thread, end_ind - ((end_ind - start_ind) % step), end_ind))
-
-    print(wait(all_task, return_when=ALL_COMPLETED))
-
+            x1 = []
+            j = 0
+            id_x1 = []
+            x1.append(d_x1["embedding"])
+            id_x1.append(d_x1["_id"])
+        j += 1
+    if len(x1) > 0:
+        x1 = torch.Tensor(x1)
+        for i, x2 in enumerate(x2_batch):
+            x2 = x2.reshape(-1, 1)
+            batch_result = cos(x1, x2)
+            add_list = []
+            batch_result = torch.ge(batch_result, threshold).nonzero(as_tuple=True)[0]
+            for batch_ind in batch_result:
+                    add_list.append(id_x1[batch_ind])
+            if add_list:
+                target_collection.update_one(
+                    {"_id": id_x2_batch[i]},
+                    {"$addToSet": {"relevances": {"$each": add_list}}},
+                )
+            add_list = []
+    
     client.close()
 
 
 def throw_error(e):
     print(e.__cause__)
-    os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
+    # os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
 
 
 if __name__ == "__main__":
@@ -113,11 +128,9 @@ if __name__ == "__main__":
     database = "CitRec"
     source_collection_name = "Spector"
     target_collection_name = "Graph"
-    workers = 15
+    workers = 144
     threshold = 0.85
-    batch_size = 100000
-    step_size = 10000
-    n_threads = 3
+    batch_size = 10000
 
     client_for_total = pymongo.MongoClient(server)
     total = client_for_total[database][source_collection_name].find().count()
@@ -126,22 +139,20 @@ if __name__ == "__main__":
     client_for_total.close()
 
     p = Pool(workers)
-    for i in range(0, total, step_size):
-        p.apply_async(
+    for i in range(0, total, batch_size):
+        result = p.apply_async(
             link_relevance,
             args=(
                 server,
                 database,
                 source_collection_name,
                 target_collection_name,
-                n_threads,
                 threshold,
                 batch_size,
                 i,
-                i + step_size, 
             ),
             error_callback=throw_error,
-            callback=lambda _: pbar.update(step_size),
+            callback=lambda _: pbar.update(batch_size),
         )
 
     p.close()
