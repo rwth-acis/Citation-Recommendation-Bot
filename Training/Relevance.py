@@ -45,12 +45,12 @@ def link_relevance(
 
     # extract docments for batch operations
     x2_batch = []
-    id_x2_batch = []     
-    for d_x2 in documents.clone()[
-        start_ind : (start_ind + batch_size)
-        ]:
+    id_x2_batch = []
+    d_x2_cursor = source_collection.find({}, no_cursor_timeout=True)[start_ind : (start_ind + batch_size)]
+    for d_x2 in d_x2_cursor:
         x2_batch.append(d_x2["embedding"])
         id_x2_batch.append(d_x2["_id"])
+    d_x2_cursor.close()
     # transform x2_batch to tensor
     x2_batch = torch.Tensor(x2_batch)
     # calculate cos_sim for docs in batch_doccs
@@ -73,7 +73,8 @@ def link_relevance(
     x1 = []
     id_x1 = []
     j = 0
-    for d_x1 in documents.clone()[(start_ind + batch_size):]:
+    d_x1_cursor = source_collection.find({}, no_cursor_timeout=True)[(start_ind + batch_size):]
+    for d_x1 in d_x1_cursor:
         if j != batch_size:
             x1.append(d_x1["embedding"])
             id_x1.append(d_x1["_id"])
@@ -113,13 +114,14 @@ def link_relevance(
                     {"$addToSet": {"relevances": {"$each": add_list}}},
                 )
             add_list = []
-    
+    d_x1_cursor.close()
+
     client.close()
 
 
 def throw_error(e):
     print(e.__cause__)
-    # os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
+    os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
 
 
 if __name__ == "__main__":
