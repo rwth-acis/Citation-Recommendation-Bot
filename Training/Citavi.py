@@ -4,7 +4,6 @@ import torch
 import tqdm
 
 
-
 def compare_doi(citavi_sqlite, aminer_mongodb, citavi_mongodb):
 
     batch_size = 100000
@@ -142,7 +141,6 @@ def compare_title(citavi_sqlite, aminer_mongodb, citavi_mongodb):
 
 
 class CosineSimilarity(torch.nn.Module):
-    
     def __init__(self):
         super().__init__()
 
@@ -157,8 +155,10 @@ class CosineSimilarity(torch.nn.Module):
         return final
 
 
-def add_relevant_papers(aminer_mongodb, spector_mongodb, spector_2018_mongodb, citavi_mongodb):
-    
+def add_relevant_papers(
+    aminer_mongodb, spector_mongodb, spector_2018_mongodb, citavi_mongodb
+):
+
     threshold = 0.8
     batch_size = 100000
 
@@ -173,7 +173,7 @@ def add_relevant_papers(aminer_mongodb, spector_mongodb, spector_2018_mongodb, c
                 }
             },
             {"$match": {"citavi.year": {"$gte": 2018}}},
-            {"$project": {"_id": 0, "embedding": 1}}
+            {"$project": {"_id": 0, "embedding": 1}},
         ]
     )
 
@@ -208,7 +208,9 @@ def add_relevant_papers(aminer_mongodb, spector_mongodb, spector_2018_mongodb, c
             for x2 in x2_all:
                 x2 = x2.reshape(-1, 1)
                 batch_result = cos(x1, x2)
-                batch_result = torch.ge(batch_result, threshold).nonzero(as_tuple=True)[0]
+                batch_result = torch.ge(batch_result, threshold).nonzero(as_tuple=True)[
+                    0
+                ]
                 for batch_ind in batch_result:
                     add_ids.append(id_x1[batch_ind])
                 for add_id in add_ids:
@@ -234,7 +236,7 @@ def add_relevant_papers(aminer_mongodb, spector_mongodb, spector_2018_mongodb, c
             batch_result = cos(x1, x2)
             batch_result = torch.ge(batch_result, threshold).nonzero(as_tuple=True)[0]
             for batch_ind in batch_result:
-                    add_ids.append(id_x1[batch_ind])
+                add_ids.append(id_x1[batch_ind])
             for add_id in add_ids:
                 add_papers.append(aminer_mongodb.find({"_id": add_id}).next())
             if add_papers:
@@ -246,7 +248,6 @@ def add_relevant_papers(aminer_mongodb, spector_mongodb, spector_2018_mongodb, c
             add_papers = []
         pbar.update(batch_size)
 
-    
     pbar.close()
     candidates_emb.close()
 
@@ -267,4 +268,6 @@ if __name__ == "__main__":
 
     compare_doi(citavi_sqlite, aminer_mongodb, citavi_mongodb)
     compare_title(citavi_sqlite, aminer_mongodb, citavi_mongodb)
-    add_relevant_papers(aminer_mongodb, spector_mongodb, spector_2018_mongodb, citavi_mongodb)
+    add_relevant_papers(
+        aminer_mongodb, spector_mongodb, spector_2018_mongodb, citavi_mongodb
+    )

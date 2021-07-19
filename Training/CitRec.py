@@ -29,10 +29,12 @@ class CitRec:
         self.client = pymongo.MongoClient(server_adress)
         self.db = self.client["CitRec"]
         self.citavi = self.db["Citavi"]
-        self.spector = self.db["Citavi_Spector"]
+        self.citavi_embeddings = self.db["Citavi_Spector"]
         self.aminer = self.db["AMiner"]
+        self.aminer_embeddings = self.db["Spector"]
+        self.cos = CosineSimilarity().to("cpu")
 
-    def find_topk_relevant_papers(self, context, k, worker=1, batch_size=5000):
+    def generate_embedding(self, context):
         # Calculate embedding of input context
         tokenizer = AutoTokenizer.from_pretrained("allenai/specter")
         model = AutoModel.from_pretrained("allenai/specter")
@@ -41,17 +43,18 @@ class CitRec:
         )
         result = model(**inputs)
         # take the first token in the batch as the embedding
-        x2 = result.last_hidden_state[:, 0, :].reshape(-1, 1)
+        embedding = result.last_hidden_state[:, 0, :].reshape(-1, 1)
 
+        return embedding
+
+    def find_topk_relevant_papers(self, embedding, k, worker=1, batch_size=5000):
         def find_topk_multiprocessing(start_ind, end_ind, queue):
             client = pymongo.MongoClient(self.server_adress)
             db = client["CitRec"]
-            spector = db["Citavi_Spector"]
 
-            paper_embeddings = spector.find()[start_ind:end_ind]
+            paper_embeddings = db["Citavi_Spector"].find()[start_ind:end_ind]
 
             # Calculate cos similarity between input context and all candidate papers
-            cos = CosineSimilarity().to("cpu")
             x1 = []
             x1_id = []
             cos_sim = torch.Tensor([])
@@ -62,7 +65,7 @@ class CitRec:
                     x1_id.append(emb["_id"])
                 else:
                     x1 = torch.Tensor(x1)
-                    batch_result = cos(x1, x2)
+                    batch_result = self.cos(x1, embedding)
                     x1 = []
                     cos_sim = torch.cat((cos_sim, batch_result), 0)
                     j = 0
@@ -71,11 +74,11 @@ class CitRec:
                 j += 1
             if len(x1) > 0:
                 x1 = torch.Tensor(x1)
-                batch_result = cos(x1, x2)
+                batch_result = self.cos(x1, embedding)
                 x1 = []
                 cos_sim = torch.cat((cos_sim, batch_result), 0)
 
-            values, indec = torch.topk(cos_sim, k, dim=0, largest=True, sorted=True)
+            relevances, indec = torch.topk(cos_sim, k, dim=0, largest=True, sorted=True)
             indec = indec.detach().reshape(1, -1).squeeze().cpu().numpy().tolist()
 
             ids = []
@@ -83,11 +86,14 @@ class CitRec:
                 ids.append(x1_id[i])
 
             queue.put(
-                (values.detach().reshape(1, -1).squeeze().cpu().numpy().tolist(), ids)
+                (
+                    relevances.detach().reshape(1, -1).squeeze().cpu().numpy().tolist(),
+                    ids,
+                )
             )
 
         jobs = []
-        total = self.spector.find().count()
+        total = self.citavi_embeddings.find().count()
         if worker < 2:
             step_size = total
         else:
@@ -102,46 +108,64 @@ class CitRec:
         for p in jobs:
             p.join()
 
-        values_all, ids_all = [], []
+        relevances_all, ids_all = [], []
         for _ in jobs:
-            values, ids = q.get()
-            values_all.append(values)
+            relevances, ids = q.get()
+            relevances_all.append(relevances)
             ids_all.append(ids)
-        values_all = torch.Tensor(values_all)
-        values_all = torch.flatten(values_all)
+        relevances_all = torch.Tensor(relevances_all)
+        relevances_all = torch.flatten(relevances_all)
         ids_all = sum(ids_all, [])
-        values, indec = torch.topk(values_all, k, dim=0, largest=True, sorted=True)
+        relevances, indec = torch.topk(
+            relevances_all, k, dim=0, largest=True, sorted=True
+        )
+        relevances = relevances.detach().reshape(1, -1).squeeze().cpu().numpy().tolist()
         indec = indec.detach().reshape(1, -1).squeeze().cpu().numpy().tolist()
 
-        res = []
-        for i in indec:
-            res.append(ids_all[i])
+        ids_relevances = []
+        for i, rel in zip(indec, relevances):
+            ids_relevances.append((ids_all[i], rel))
 
-        return ids_all
+        return ids_relevances
 
-    def consider_references(self, ids, threshold=3):
+    def consider_references(self, embedding, ids_relevances, threshold=3):
         frequency = {}
-        for i in ids:
-            references = self.aminer.find({"_id": i}, {"references": 1}).next().get("references") or None
+        for i, _ in ids_relevances:
+            references = (
+                self.aminer.find({"_id": i}, {"references": 1}).next().get("references")
+                or None
+            )
             if references:
                 for ref in references:
                     if ref not in frequency:
                         frequency[ref] = 1
                     else:
                         frequency[ref] += 1
-        
+
+        new_ids = []
+        new_x1 = []
         for i, freq in frequency.items():
             if freq > threshold:
-                ids.append(i)
-        
-        return ids
-    
-    def find_papers_with_ids(self, ids):
-        ids = set(ids)
-        for i in ids:
+                new_ids.append(i)
+                new_x1.append(
+                    self.aminer_embeddings.find({"_id": i}, {"_id": 0}).next()["embedding"])
+
+        new_x1 = torch.Tensor(new_x1)
+        relevances = self.cos(new_x1, embedding)
+        relevances = relevances.detach().reshape(1, -1).squeeze().cpu().numpy().tolist()
+
+        ids_relevances_ref = []
+        for i, rel in zip(new_ids, relevances):
+            ids_relevances_ref.append((i, rel))
+        ids_relevances_ref.sort(key=lambda x: x[1], reverse=True)
+
+        return ids_relevances_ref
+
+    def find_papers_with_ids_relevances(self, ids_relevances):
+        for i, rel in ids_relevances:
             # TODO Output by format
             print(self.aminer.find({"_id": i}, {"title": 1}).next())
-            
+
 
 if __name__ == "__main__":
 
@@ -150,8 +174,10 @@ if __name__ == "__main__":
 
     context = "Machine learning methods are used in citation recommendation."
     print("Find relevant papers for: " + context)
-    ids = citrec.find_topk_relevant_papers(context, 20, worker=5)
-    ids = citrec.consider_references(ids)
-    citrec.find_papers_with_ids(ids)
+    embedding = citrec.generate_embedding(context)
+    ids_relevances = citrec.find_topk_relevant_papers(embedding, 20, worker=5)
+    ids_relevances_ref = citrec.consider_references(embedding, ids_relevances)
+    citrec.find_papers_with_ids_relevances(ids_relevances)
+
     time_end = time.time()
     print("time cost", time_end - time_start, "s")
