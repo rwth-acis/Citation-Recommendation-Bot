@@ -1,2 +1,4 @@
 sbatch.sh
 .vscode
+.gitignore
+database/
