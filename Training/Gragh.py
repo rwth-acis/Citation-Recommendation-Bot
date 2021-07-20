@@ -1,6 +1,9 @@
 import networkx as nx
 import pymongo
 import tqdm
+import csrgraph as cg
+import nodevectors
+import time
 
 
 class Graph(nx.Graph):
@@ -25,18 +28,28 @@ class Graph(nx.Graph):
         for d in data_edges:
             if i != batch_size:
                 papid = d["_id"]
-                references = d["references"]
-                for ref in references:
-                    edges.append([papid, ref])
+                references = d.get("references") or None
+                relevances = d.get("relevances") or None
+                if references:
+                    for ref in references:
+                        edges.append([papid, ref])
+                if relevances:
+                    for rel in relevances:
+                        edges.append([papid, rel])
             else:
                 self.add_edges_from(edges)
                 pbar.update(batch_size)
                 i = 0
                 edges = []
                 papid = d["_id"]
-                references = d["references"]
-                for ref in references:
-                    edges.append((papid, ref))
+                references = d.get("references") or None
+                relevances = d.get("relevances") or None
+                if references:
+                    for ref in references:
+                        edges.append([papid, ref])
+                if relevances:
+                    for rel in relevances:
+                        edges.append([papid, rel])
             i += 1
         if len(edges) > 0:
             self.add_edges_from(edges)
@@ -45,6 +58,8 @@ class Graph(nx.Graph):
 
 
 if __name__ == "__main__":
+    start = time.clock()
+
     # connect to the MongoDB
     # use command ifconfic to get the ethernet IP
     client = pymongo.MongoClient("134.61.193.185:27017")
@@ -53,8 +68,15 @@ if __name__ == "__main__":
     collection = db["Graph"]
     data_nodes = collection.find({}, {"_id": 1})
     data_edges = collection.find(
-        {"references": {"$exists": True}}, {"_id": 1, "references": 1}
+        {}, {"_id": 1, "references": 1, "relevances": 1}
     )
     graph = Graph()
     graph.add_nodes_from_docs(data_nodes)
     graph.add_edges_from_docs(data_edges, 16)
+    graph = cg.csrgraph(graph)
+    g2v = nodevectors.ProNE(n_components=128)
+    g2v.fit(graph)
+    g2v.save('node_embedding')
+
+    end = time.clock()
+    print('Running time: %s Seconds' % (end - start))
