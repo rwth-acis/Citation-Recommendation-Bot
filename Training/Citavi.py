@@ -4,7 +4,6 @@ import torch
 import tqdm
 
 
-
 def compare_doi(citavi_sqlite, aminer_mongodb, citavi_mongodb):
 
     batch_size = 100000
