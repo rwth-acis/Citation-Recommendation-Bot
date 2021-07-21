@@ -172,12 +172,13 @@ if __name__ == "__main__":
     time_start = time.time()
     citrec = CitRec("mongodb://localhost:27017/")
 
-    context = "Machine learning methods are used in citation recommendation."
+    context = "Content-Based Citation Recommendation. We present a content-based method for recommending citations in an academic paper draft. We embed a given query document into a vector space, then use its nearest neighbors as candidates, and rerank the candidates using a discriminative model trained to distinguish between observed and unobserved citations. Unlike previous work, our method does not require metadata such as author names which can be missing, e.g., during the peer review process. Without using metadata, our method outperforms the best reported results on PubMed and DBLP datasets with relative improvements of over 18% in F1@20 and over 22% in MRR. We show empirically that, although adding metadata improves the performance on standard metrics, it favors self-citations which are less useful in a citation recommendation setup. We release an online portal (http://labs.semanticscholar.org/citeomatic/) for citation recommendation based on our method, and a new dataset OpenCorpus of 7 million research articles to facilitate future research on this task."
     print("Find relevant papers for: " + context)
     embedding = citrec.generate_embedding(context)
     ids_relevances = citrec.find_topk_relevant_papers(embedding, 20, worker=5)
-    ids_relevances_ref = citrec.consider_references(embedding, ids_relevances)
-    citrec.find_papers_with_ids_relevances(ids_relevances)
+    ids_relevances_ref = citrec.consider_references(embedding, ids_relevances, threshold=5)
+    # citrec.find_papers_with_ids_relevances(ids_relevances)
+    citrec.find_papers_with_ids_relevances(ids_relevances_ref)
 
     time_end = time.time()
     print("time cost", time_end - time_start, "s")

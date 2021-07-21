@@ -3,3 +3,4 @@ sbatch.sh
 .gitignore
 database/
 node_embedding.zip
+CitRec.py
