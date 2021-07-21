@@ -2,3 +2,4 @@ sbatch.sh
 .vscode
 .gitignore
 database/
+node_embedding.zip
