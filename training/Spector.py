@@ -77,7 +77,7 @@ if __name__ == "__main__":
     torch.cuda.empty_cache()
     # connect to the MongoDB
     # use command ifconfic to get the ethernet IP
-    client = pymongo.MongoClient("134.61.193.185:27017")
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
     # set collections
     db = client["CitRec"]
     source_collection = db["Context"]
