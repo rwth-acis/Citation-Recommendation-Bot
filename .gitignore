@@ -1,4 +1,3 @@
 sbatch.sh
 .vscode
 database/
-node_embedding.zip
