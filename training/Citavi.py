@@ -13,7 +13,7 @@ def compare_doi(citavi_sqlite, aminer_mongodb, citavi_mongodb, batch_size=100000
         citavi_mongodb (MongoDB collection): The collection stores the compared citavi dataset.
         batch_size (int, optional): Comparing with "bath_size" papers at a time. Defaults to 100000.
     """
-    batch_size = 100000
+
     dois_aminer_cursor = aminer_mongodb.find(
         {"doi": {"$exists": True}}, {"_id": 1, "doi": 1}
     )
