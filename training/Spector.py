@@ -14,10 +14,9 @@ class Dataset:
         # set collections
         self.source_collection = source_collection
         self.target_collection = target_collection
-        self.documents = self.source_collection.find()
 
     def __len__(self):
-        return self.documents.count()
+        return self.source_collection.find().count()
 
     def batches(self):
         # create batches
@@ -25,7 +24,8 @@ class Dataset:
         batch_ids = []
         batch_size = self.batch_size
         i = 0
-        for d in self.documents:
+        documents = self.source_collection.find({}, no_cursor_timeout=True)
+        for d in documents:
             if i % batch_size != 0 or i == 0:
                 batch.append((d.get("title") or "") + " " + (d.get("abstract") or ""))
                 d.pop("title", None)
@@ -49,6 +49,7 @@ class Dataset:
                 d.pop("abstract", None)
                 batch_ids.append(d)
             i += 1
+        documents.close()
         if len(batch) > 0:
             input_ids = self.tokenizer(
                 batch,
@@ -71,10 +72,30 @@ class Model:
         output = self.model(**input_ids)
         return output.last_hidden_state[:, 0, :]  # cls token
 
+def generate_embeddings(source_collection, target_collection, batch_size=16):
+    """Generate embeddings for all papers in the "source_collection" based on title and abstract, and store the embeddings in the "target_collection". 
+
+    Args:
+        source_collection (MongoDB collection): Collection stores papers' titles and abstracts.
+        target_collection (MongoDB collection): Collection stores the embeddings.
+        batch_size (int, optional): Compute "batch_size" embeddings at a time (parallel computing). Defaults to 16.
+    """
+    dataset = Dataset(
+        source_collection=source_collection,
+        target_collection=target_collection,
+        batch_size=batch_size,
+    )
+    model = Model()
+    for batch, batch_ids in tqdm(
+        dataset.batches(), total=len(dataset) // batch_size + 1, desc="Generating embeddings"
+    ):
+        embeddings = model(batch).detach().cpu().numpy().tolist()
+        for i, embedding in enumerate(embeddings):
+            batch_ids[i]["embedding"] = embedding
+        target_collection.insert(batch_ids)
+
 
 if __name__ == "__main__":
-    # empty cache
-    torch.cuda.empty_cache()
     # connect to the MongoDB
     # use command ifconfic to get the ethernet IP
     client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -84,17 +105,4 @@ if __name__ == "__main__":
     target_collection = db["Spector"]
     # set bach size
     batch_size = 16
-    dataset = Dataset(
-        source_collection=source_collection,
-        target_collection=target_collection,
-        batch_size=batch_size,
-    )
-    model = Model()
-    for batch, batch_ids in tqdm(
-        dataset.batches(), total=len(dataset) // batch_size + 1
-    ):
-        embeddings = model(batch).detach().cpu().numpy().tolist()
-        torch.cuda.empty_cache()
-        for i, embedding in enumerate(embeddings):
-            batch_ids[i]["embedding"] = embedding
-        target_collection.insert(batch_ids)
+    generate_embeddings(source_collection, target_collection, batch_size)
