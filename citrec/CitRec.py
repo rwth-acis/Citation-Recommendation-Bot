@@ -3,7 +3,7 @@ import pymongo
 from transformers import AutoModel, AutoTokenizer
 
 
-server_adress = "mongodb://localhost:27017/"
+server_adress = "mongodb"
 
 
 def load_embeddings(server_adress, collection):
@@ -178,4 +178,4 @@ if __name__ == "__main__":
               """
     rec_list, rec_list_ref = citrec(context)
     print(rec_list)
-    print(rec_list_ref)
+    print(rec_list_ref)    

@@ -1,6 +1,0 @@
-flask 
-pymongo 
-tokenizers 
-transformers
-torch
-torchvision

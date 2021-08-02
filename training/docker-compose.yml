@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+    training:
+        build: .
+        networks:
+            - mongodb-net
+        stdin_open: true    # docker run -i
+        tty: true   # docker run -t
+    mongodb:
+        image: "mongo"
+        networks:
+            - mongodb-net
+        volumes: 
+            - type: volume
+              source: mongodb-vol
+              target: /data/db
+            - type: volume
+              source: mongodb_config-vol
+              target: /data/configdb
+
+networks: 
+    mongodb-net:
+
+volumes:
+    mongodb-vol:
+    mongodb_config-vol:
