@@ -1,0 +1,161 @@
+{
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "I found some suitable papers for your input☺️ These papers are ranked based on relevance scores (the first paper is the most relevant to you context).",
+				"emoji": true
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "You can add individual paper to the marking list and can ask me to generate BibTeX document for it. If you want generate BibTeX document for multiple papers, please add them into marking list at first. ",
+				"emoji": true
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Citation context*: {{ context }}"
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "checkboxes",
+					"options": [
+						{% for paper in rec_list %}
+						{% if paper.source == "aminer" %}
+						{
+							"text": {
+								"type": "mrkdwn",
+								"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}"
+							},
+							"description": {
+								"type": "mrkdwn",
+								"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{paper.rel_score}}"
+							},
+							"value": "{{paper._id}},{{paper.source}}"
+						},
+						{% else %}
+						{
+							"text": {
+								"type": "mrkdwn",
+								"text": "{{loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\""
+							},
+							"description": {
+								"type": "mrkdwn",
+								"text": "{% if paper.journal %}{{paper.journal}}{% elif paper.booktitle %}{{paper.booktitle}}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{paper.rel_score}}"
+							},
+							"value": "{{paper._id}},{{paper.source}}"
+						},
+						{% endif %}
+						{% endfor %}
+					],
+					"action_id": "rec"
+				}
+			]
+		},
+		{
+			"type": "divider"
+		},
+		{% if rec_list_ref %}
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "The following papers which have been cited many by the above papers might also be worth-reading:",
+				"emoji": true
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "This is a section block with checkboxes."
+			},
+			"accessory": {
+				"type": "checkboxes",
+				"options": [
+					{% for paper in rec_list_ref %}						
+					{
+						"text": {
+							"type": "mrkdwn",
+							"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}"
+						},
+						"description": {
+							"type": "mrkdwn",
+							"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{paper.rel_score}}"
+						},
+						"value": "{{paper._id}},{{paper.source}}"
+					},
+					{% endfor %}
+				],
+				"action_id": "ref"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{% endif %}
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "If you want to add selected papers to the marking list, please click this button 👉"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Add to list",
+					"emoji": true
+				},
+				"value": "add2list",
+				"action_id": "add2list"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "If you want to generate BibTeX document for selected papers, please click this button 👉"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Generate BibTeX",
+					"emoji": true
+				},
+				"value": "bibtex",
+				"action_id": "bibtex"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "If you found some papers are with wrong information, I am glad to know and correct them💪"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Send feedback",
+					"emoji": true
+				},
+				"value": "feedback",
+				"action_id": "feedback"
+			}
+		}
+	]
+}

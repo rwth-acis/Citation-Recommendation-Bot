@@ -1,3 +1,5 @@
 sbatch.sh
 .vscode
 database/
+citrec/.env
+citrec/.flaskenv

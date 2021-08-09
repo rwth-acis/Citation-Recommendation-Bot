@@ -54,9 +54,11 @@ class CitRec:
         self.tokenizer = AutoTokenizer.from_pretrained("allenai/specter")
         self.model = AutoModel.from_pretrained("allenai/specter")
 
-    def __call__(self, context):
+    def __call__(self, context, k=50):
         embedding = self.generate_embedding(context)
-        ids_relevances_citavi, ids_relevances = self.find_topk_relevant_papers(embedding, k=20)
+        ids_relevances_citavi, ids_relevances = self.find_topk_relevant_papers(
+            embedding, k
+        )
         ids_ref = self.consider_references(ids_relevances_citavi, threshold=5)
         rec_list = self.find_papers_with_ids_relevances(ids_relevances)
         rec_list_ref = self.find_papers_with_ids(ids_ref)
@@ -89,7 +91,7 @@ class CitRec:
             k (int): k papers will be found.
 
         Returns:
-            set: 
+            set:
         """
         # find topk in citavi dataset
         relevances_all = self.cos(CitRec.citavi_embeddings, embedding)
@@ -112,16 +114,18 @@ class CitRec:
 
         relevances = relevances.detach().reshape(1, -1).squeeze().cpu().numpy().tolist()
         indec = indec.detach().reshape(1, -1).squeeze().cpu().numpy().tolist()
-        
+
         ids_relevances_dblp = []
         for i, rel in zip(indec, relevances):
             ids_relevances_dblp.append((CitRec.dblp_ids[i], rel, "dblp"))
-        
+
         # sorted by the relevance scores
         ids_relevances = sorted(
-            ids_relevances_citavi + ids_relevances_dblp, key=lambda v: (v[1], v[2], v[0]), reverse=True
+            ids_relevances_citavi + ids_relevances_dblp,
+            key=lambda v: (v[1], v[2], v[0]),
+            reverse=True,
         )
-        
+
         return (ids_relevances_citavi, ids_relevances[:k])
 
     def consider_references(self, ids_relevances_citavi, threshold=5):
@@ -137,7 +141,9 @@ class CitRec:
                         frequency[ref] = 1
                     else:
                         frequency[ref] += 1
-        frequency = sorted(frequency.items(), key = lambda kv:(kv[1], kv[0]),reverse=True)
+        frequency = sorted(
+            frequency.items(), key=lambda kv: (kv[1], kv[0]), reverse=True
+        )
 
         ids_ref = []
         for i, freq in frequency:
@@ -150,20 +156,51 @@ class CitRec:
         rec_list = []
         for i, rel, source in ids_relevances:
             if source == "dblp":
-                dic = self.dblp.find({"_id": i}, {"title": 1}).next()
+                dic = self.dblp.find(
+                    {"_id": i},
+                    {
+                        "title": 1,
+                        "author": 1,
+                        "year": 1,
+                        "booktitle": 1,
+                        "journal": 1,
+                        "ee": 1,
+                    },
+                ).next()
                 dic["rel_score"] = rel
+                dic["source"] = "dblp"
                 rec_list.append(dic)
             else:
-                dic = self.aminer.find({"_id": i}, {"title": 1}).next()
+                dic = self.aminer.find(
+                    {"_id": i},
+                    {
+                        "title": 1,
+                        "authors.name": 1,
+                        "venue.raw": 1,
+                        "year": 1,
+                        "url": 1,
+                    },
+                ).next()
                 dic["rel_score"] = rel
+                dic["source"] = "aminer"
                 rec_list.append(dic)
-            
+
         return rec_list
 
     def find_papers_with_ids(self, ids):
         rec_list_ref = []
         for i in ids:
-            dic = self.aminer.find({"_id": i}, {"title": 1}).next()
+            dic = self.aminer.find(
+                {"_id": i},
+                {
+                    "title": 1,
+                    "authors.name": 1,
+                    "venue.raw": 1,
+                    "year": 1,
+                    "url": 1,
+                },
+            ).next()
+            dic["source"] = "aminer"
             rec_list_ref.append(dic)
 
         return rec_list_ref
@@ -178,4 +215,4 @@ if __name__ == "__main__":
               """
     rec_list, rec_list_ref = citrec(context)
     print(rec_list)
-    print(rec_list_ref)    
+    print(rec_list_ref)
