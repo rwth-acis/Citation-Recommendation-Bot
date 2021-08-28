@@ -12,7 +12,7 @@
 			"type": "section",
 			"text": {
 				"type": "plain_text",
-				"text": "You can add individual paper to the marking list and can ask me to generate BibTeX document for it. If you want generate BibTeX document for multiple papers, please add them into marking list at first. ",
+				"text": "You can add individual paper to the marking list and can ask me to generate BibTeX document for it.",
 				"emoji": true
 			}
 		},
@@ -41,7 +41,7 @@
 							},
 							"description": {
 								"type": "mrkdwn",
-								"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{paper.rel_score}}"
+								"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
 							},
 							"value": "{{paper._id}},{{paper.source}}"
 						},
@@ -53,7 +53,7 @@
 							},
 							"description": {
 								"type": "mrkdwn",
-								"text": "{% if paper.journal %}{{paper.journal}}{% elif paper.booktitle %}{{paper.booktitle}}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{paper.rel_score}}"
+								"text": "{% if paper.journal %}{{paper.journal}}{% elif paper.booktitle %}{{paper.booktitle}}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
 							},
 							"value": "{{paper._id}},{{paper.source}}"
 						},
@@ -71,16 +71,8 @@
 		{
 			"type": "section",
 			"text": {
-				"type": "plain_text",
-				"text": "The following papers which have been cited many by the above papers might also be worth-reading:",
-				"emoji": true
-			}
-		},
-		{
-			"type": "section",
-			"text": {
 				"type": "mrkdwn",
-				"text": "This is a section block with checkboxes."
+				"text": "The following papers which have been cited many by the above papers might also be worth-reading:"
 			},
 			"accessory": {
 				"type": "checkboxes",
@@ -93,7 +85,7 @@
 						},
 						"description": {
 							"type": "mrkdwn",
-							"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{paper.rel_score}}"
+							"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
 						},
 						"value": "{{paper._id}},{{paper.source}}"
 					},
@@ -110,7 +102,24 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "If you want to add selected papers to the marking list, please click this button 👉"
+				"text": "To see more relevant papers, please click this button 👉"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "More papers",
+					"emoji": true
+				},
+				"value": "more",
+				"action_id": "more"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "To add selected papers to the marking list, please click this button 👉"
 			},
 			"accessory": {
 				"type": "button",
@@ -127,7 +136,7 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "If you want to generate BibTeX document for selected papers, please click this button 👉"
+				"text": "To generate BibTeX document for selected papers, please click this button 👉"
 			},
 			"accessory": {
 				"type": "button",
@@ -139,6 +148,9 @@
 				"value": "bibtex",
 				"action_id": "bibtex"
 			}
+		},
+		{
+			"type": "divider"
 		},
 		{
 			"type": "section",
