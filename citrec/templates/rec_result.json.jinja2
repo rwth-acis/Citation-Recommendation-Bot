@@ -37,11 +37,11 @@
 						{
 							"text": {
 								"type": "mrkdwn",
-								"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}"
+								"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}"
 							},
 							"description": {
 								"type": "mrkdwn",
-								"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+								"text": "{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
 							},
 							"value": "{{paper._id}},{{paper.source}}"
 						},
@@ -49,11 +49,11 @@
 						{
 							"text": {
 								"type": "mrkdwn",
-								"text": "{{loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\""
+								"text": "{{loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\"{% if paper.year %} ({{paper.year}}){% endif %}"
 							},
 							"description": {
 								"type": "mrkdwn",
-								"text": "{% if paper.journal %}{{paper.journal}}{% elif paper.booktitle %}{{paper.booktitle}}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+								"text": "{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
 							},
 							"value": "{{paper._id}},{{paper.source}}"
 						},
@@ -81,11 +81,11 @@
 					{
 						"text": {
 							"type": "mrkdwn",
-							"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}"
+							"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}"
 						},
 						"description": {
 							"type": "mrkdwn",
-							"text": "{% if paper.venue %}{% if paper.venue.raw %}{{paper.venue.raw}}{% endif %}{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}. \n {% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
+							"text": "{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
 						},
 						"value": "{{paper._id}},{{paper.source}}"
 					},
