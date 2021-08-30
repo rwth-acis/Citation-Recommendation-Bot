@@ -7,10 +7,10 @@ import datetime
 
 
 app = Flask(__name__)
-server_adress = "mongodb"
+server_adress = "localhost:27017"
 client = pymongo.MongoClient(server_adress)
 db = client["CitBot"]
-mark_list = db["List"]
+mark_list = db["Lists"]
 selected_items = db["Items"]
 
 
@@ -34,7 +34,7 @@ def rec(context):
 def actions(payload):
     msg = eval(payload)
     print(payload)
-    if isinstance(msg["msg"], list):
+    if isinstance(msg["msg"], type(list)):
         try:
             selected_items.insert_one(
                 {
@@ -54,30 +54,35 @@ def actions(payload):
                 },
             )
         return "Selected items have been stored."
-    else:
-        if "list" in msg["msg"]:
-            try:
-                marked = selected_items.find(
-                    {"_id": str(msg["user"]) + str(msg["time"])}
-                ).next()["selected"]
-            except StopIteration:
-                return {
-                    "text": "No items have been selected (or data expired due to long periods of inactivity), please select items at first 🥺"
-                }
+    elif "list" in msg["msg"]:
+        try:
+            mark = selected_items.find(
+                {"_id": str(msg["user"]) + str(msg["time"])}
+            ).next()["selected"]
+        except StopIteration:
+            return {
+                "text": "No items have been selected (or data expired due to long periods of inactivity), please select items at first 🥺"
+            }
+        if mark == []:
+            return {
+                "text": "No items have been selected, please select items at first 🥺"
+            }
+        else: 
             try:
                 mark_list.insert_one(
                     {
                         "_id": str(msg["user"]),
-                        "marked": marked,
+                        "marked": mark,
                         "expireAt": datetime.datetime.utcnow()
                         + datetime.timedelta(days=60),
                     }
                 )
             except pymongo.errors.DuplicateKeyError:
-                mark_list.insert_one(
+                mark += mark_list.find({"_id": str(msg["user"])}).next()["marked"]
+                mark_list.update(
                     {"_id": str(msg["user"])},
                     {
-                        "marked": marked,
+                        "marked": set(mark),
                         "expireAt": datetime.datetime.utcnow()
                         + datetime.timedelta(days=60),
                     },
@@ -85,3 +90,15 @@ def actions(payload):
             return {
                 "text": 'Selected items have been added to the marking list, send "!list" to see the marking list 😉'
             }
+
+
+@app.route("/lists/<payload>")
+def lists(payload):
+    msg = eval(payload)
+    try:
+        marked = mark_list.find({"_id": str(msg["user"])}).next()["marked"]
+    except StopIteration:
+        return {
+            "text": "No papers in your marking list (or data expired due to long periods of inactivity), please add items into the marking list at first 🥺"
+        }
+    return 
