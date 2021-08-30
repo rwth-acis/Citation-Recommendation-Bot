@@ -41,7 +41,7 @@
 							},
 							"description": {
 								"type": "mrkdwn",
-								"text": "{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+								"text": "{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance: {{"%0.3f"|format(paper.rel_score)}}"
 							},
 							"value": "{{paper._id}},{{paper.source}}"
 						},
@@ -53,7 +53,7 @@
 							},
 							"description": {
 								"type": "mrkdwn",
-								"text": "{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+								"text": "{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance: {{"%0.3f"|format(paper.rel_score)}}"
 							},
 							"value": "{{paper._id}},{{paper.source}}"
 						},
