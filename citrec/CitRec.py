@@ -3,7 +3,7 @@ import pymongo
 from transformers import AutoModel, AutoTokenizer
 
 
-server_adress = "mongodb"
+server_adress = "localhost:27017"
 
 
 def load_embeddings(server_adress, collection):
@@ -178,12 +178,44 @@ class CitRec:
                         "authors.name": 1,
                         "venue.raw": 1,
                         "year": 1,
+                        "doi": 1,
                         "url": 1,
                     },
                 ).next()
                 dic["rel_score"] = rel
                 dic["source"] = "aminer"
                 rec_list.append(dic)
+
+        # test, if the url could work
+        for paper in rec_list:
+            if paper["source"] == "aminer":
+                if "doi" in paper:
+                    if paper["doi"] != "":
+                        paper["url"] = "http://dx.doi.org/" + paper["doi"]
+                    del paper["doi"]
+                elif "url" in paper:
+                    if isinstance(paper["url"], list):
+                        for url in paper.get("url"):
+                            if url.startswith("http"):
+                                paper["url"] = url
+                                break
+                            # no usable url, drop this key-value pairs
+                            del paper["url"]
+                    elif isinstance(paper["url"], str):
+                        if not paper["url"].startswith("http"):
+                            del paper["url"]
+            else:
+                if "ee" in paper:
+                    if isinstance(paper["ee"], list):
+                        for url in paper.get("ee"):
+                            if url.startswith("http"):
+                                paper["ee"] = url
+                                break
+                            # no usable url, drop this key-value pairs
+                            del paper["ee"]
+                    elif isinstance(paper["ee"], str):
+                        if not paper["ee"].startswith("http"):
+                            del paper["ee"]
 
         return rec_list
 
@@ -202,6 +234,23 @@ class CitRec:
             ).next()
             dic["source"] = "aminer"
             rec_list_ref.append(dic)
+        
+        for paper in rec_list_ref:
+            if "doi" in paper:
+                if paper["doi"] != "":
+                    paper["url"] = "http://dx.doi.org/" + paper["doi"]
+                del paper["doi"]
+            elif "url" in paper:
+                if isinstance(paper["url"], list):
+                    for url in paper.get("url"):
+                        if url.startswith("http"):
+                            paper["url"] = url
+                            break
+                        # no usable url, drop this key-value pairs
+                        del paper["url"]
+                elif isinstance(paper["url"], str):
+                    if not paper["url"].startswith("http"):
+                        del paper["url"]
 
         return rec_list_ref
 
