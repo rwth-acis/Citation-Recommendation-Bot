@@ -2,175 +2,66 @@ from flask import Flask, render_template
 from bson.objectid import ObjectId
 import pymongo
 import datetime
-from CitRec import CitRec
-
+# from CitRec import CitRec
+import CitBot
 
 app = Flask(__name__)
 server_adress = "localhost:27017"
 client = pymongo.MongoClient(server_adress)
 db_citbot = client["CitBot"]
-mark_list = db_citbot["Lists"]
+mark_lists = db_citbot["Lists"]
 selected_items = db_citbot["Items"]
+results = db_citbot["Results"]
 db_citrec = client["CitRec"]
 aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 
 
-def find_papers(ids_sources):
-    finded_papers = []
-    for i in range(len(ids_sources)):
-        ids_sources[i] = tuple(ids_sources[i].split(','))
-    for i, source in ids_sources:
-        if source == "dblp":
-            try:
-                dic = dblp.find(
-                    {"_id": ObjectId(i)},
-                    {
-                        "title": 1,
-                        "author": 1,
-                        "year": 1,
-                        "booktitle": 1,
-                        "journal": 1,
-                        "ee": 1,
-                    },
-                ).next()
-            except StopIteration:
-                dic = dblp.find(
-                    {"_id": i},
-                    {
-                        "title": 1,
-                        "author": 1,
-                        "year": 1,
-                        "booktitle": 1,
-                        "journal": 1,
-                        "ee": 1,
-                    },
-                ).next()
-            dic["source"] = "dblp"
-            finded_papers.append(dic)
-        else:
-            try:
-                dic = aminer.find(
-                    {"_id": i},
-                    {
-                        "title": 1,
-                        "authors.name": 1,
-                        "venue.raw": 1,
-                        "year": 1,
-                        "url": 1,
-                    },
-                ).next()
-            except StopIteration: 
-                dic = aminer.find(
-                    {"_id": ObjectId(i)},
-                    {
-                        "title": 1,
-                        "authors.name": 1,
-                        "venue.raw": 1,
-                        "year": 1,
-                        "url": 1,
-                    },
-                ).next()
-            dic["source"] = "aminer"
-            finded_papers.append(dic)
-    return finded_papers
-
-
-@app.route("/rec/<context>")
-def rec(context):
-    citrec = CitRec()
-    rec_list, rec_list_ref = citrec(context)
-    # file = open("rec_list.txt", "r")
-    # rec_list = eval(file.read())
-    # file.close()
-    return render_template(
-        "rec_result.json.jinja2",
-        context=context,
-        rec_list=rec_list[:10],
-        rec_list_ref=rec_list_ref[:10],
-    )
+# @app.route("/rec/<payload>")
+# def rec(payload):
+#     payload = eval(payload)
+#     citrec = CitRec()
+#     rec_list, ref_list = citrec(payload["context"])
+#     return CitBot.generate_rec_result(context=payload["context"], rec_list=rec_list, ref_list=ref_list, user_id=payload["user"])
 
 
 @app.route("/actions/<payload>")
 def actions(payload):
-    msg = eval(payload)
+    payload = eval(payload)
+    actionInfo = eval(payload["actionInfo"])
     print(payload)
-    # Select items in the checkbox, store the selected items
-    if isinstance(msg["msg"], list) or msg["msg"] == "[]":
-        try:
-            selected_items.insert_one(
-                {
-                    "_id": str(msg["user"]) + str(msg["time"]),
-                    "selected": msg["msg"],
-                    "expireAt": datetime.datetime.utcnow()
-                    + datetime.timedelta(minutes=30),
-                }
-            )
-        except pymongo.errors.DuplicateKeyError:
-            selected_items.update(
-                {"_id": str(msg["user"]) + str(msg["time"])},
-                {
-                    "selected": msg["msg"],
-                    "expireAt": datetime.datetime.utcnow()
-                    + datetime.timedelta(minutes=30),
-                },
-            )
-        return "Selected items have been stored."
 
-    # clicked the add2list button 
-    elif "list" in msg["msg"]:
-        try:
-            mark = selected_items.find(
-                {"_id": str(msg["user"]) + str(msg["time"])}
-            ).next()["selected"]
-        except StopIteration:
-            return {
-                "text": "No items have been selected (or data expired due to long periods of inactivity), please select items at first 🥺"
-            }
-        if mark == "[]":
-            return {
-                "text": "No items have been selected, please select items at first 🥺"
-            }
-        else: 
-            try:
-                mark_list.insert_one(
-                    {
-                        "_id": str(msg["user"]),
-                        "marked": mark,
-                        "expireAt": datetime.datetime.utcnow()
-                        + datetime.timedelta(days=60),
-                    }
-                )
-            except pymongo.errors.DuplicateKeyError:
-                mark += mark_list.find({"_id": str(msg["user"])}).next()["marked"]
-                mark_list.update(
-                    {"_id": str(msg["user"])},
-                    {
-                        # delete duplicate papers
-                        "marked": sorted(set(mark),key=mark.index),
-                        "expireAt": datetime.datetime.utcnow()
-                        + datetime.timedelta(days=60),
-                    },
-                )
-            return {
-                "text": 'Selected items have been added to the marking list, send "!list" to see the marking list 😉'
-            }
-    return {
-                "text": 'An error occurred 😖'
-            }
+    # when clicking previous page and next page in recommendation result list
+    if actionInfo["actionId"] == "next_rec" or actionInfo["actionId"] == "previous_rec":
+        return CitBot.flip_page_rec(value=actionInfo["value"], time=payload["time"])
+
+    # when clicking see classic papers
+    elif actionInfo["actionId"] == "classic":
+        return CitBot.show_classic_papers(ref_list_id=actionInfo["value"])
+
+    # when clicking previous page and next page in classic paper list
+    elif actionInfo["actionId"] == "previous_ref" or actionInfo["actionId"] == "next_ref":
+        return CitBot.flip_page_ref(value=actionInfo["value"], time=payload["time"])
+
+    # when clicking the add2list button
+    elif actionInfo["actionId"] == "add2list":
+        return CitBot.add_to_list(value=actionInfo["value"], time=payload["time"], user_id=payload["user"])
+        
+    elif actionInfo["actionId"] == "del":
+        return CitBot.del_paper_in_list(value=actionInfo["value"], time=payload["time"], user_id=payload["user"])
+
+    return {"text": "An error occurred 😖"}
 
 
 @app.route("/lists/<payload>")
 def lists(payload):
-    msg = eval(payload)
-    try:
-        marked_ids = mark_list.find({"_id": str(msg["user"])}).next()["marked"]
-    except StopIteration:
+    payload = eval(payload)
+    user_id = str(payload["user"])
+    list_id, marked_papers = CitBot.find_papers_in_list(user_id)
+    if not list_id:
         return {
             "text": "No papers in your marking list (or data expired due to long periods of inactivity), please add items into the marking list at first 🥺"
         }
-    marked_papers = find_papers(marked_ids)
-    return render_template(
-        "mark_list.json.jinja2",
-        marked_papers = marked_papers
-    )
+    else:
+        return {"blocks": render_template("mark_list.json.jinja2", list_id=list_id, marked_papers=marked_papers)
+        }

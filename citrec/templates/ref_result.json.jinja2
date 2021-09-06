@@ -1,0 +1,111 @@
+[
+    {
+        "type": "section",
+        "text": {
+            "type": "plain_text",
+            "text": "Here are some classic papers I found for your input ☺️ ",
+            "emoji": true
+        }
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "plain_text",
+            "text": "You can add individual paper to the marking list and can ask me to generate BibTeX document for all the papers in the marking list.",
+            "emoji": true
+        }
+    },
+    {
+        "type": "divider"
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "*Citation context*: {{context}}"
+        }
+    },
+    {% for paper in ref_list %}
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
+        },
+        {% if paper.inList != true %}
+        "accessory": {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "Add to list",
+                "emoji": true
+            },
+            "value": "ref,{{ref_list_id}},{{page}},{{paper._id}},{{paper.source}}",
+            "action_id": "add2list"
+        }
+        {% else %}
+        "accessory": {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "In the list",
+                "emoji": true
+            },
+            "value": "{{paper._id}},{{paper.source}}",
+            "action_id": "inList"
+        }
+        {% endif %}
+    },
+    {% endfor %}
+    {% if (page != 0) and (next_page == true) %}
+    {
+        "type": "actions",
+        "elements": [
+            {% if page != 0 %}
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Previous page",
+                    "emoji": true
+                },
+                "value": "{{ref_list_id}},{{page-1}}",
+                "action_id": "previous_ref"
+            },
+            {% endif %}
+            {% if next_page == true %}
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Next page",
+                    "emoji": true
+                },
+                "value": "{{ref_list_id}},{{page+1}}",
+                "action_id": "next_ref"
+            }
+            {% endif %}
+        ]
+    },
+    {% endif %}
+    {
+        "type": "divider"
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "If you found some papers are with wrong information, I am glad to know and correct them 💪"
+        },
+        "accessory": {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "Send feedback",
+                "emoji": true
+            },
+            "value": "feedback",
+            "action_id": "feedback"
+        }
+    }
+]

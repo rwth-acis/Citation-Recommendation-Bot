@@ -1,91 +1,89 @@
-{
-	"blocks": [
-		{
-			"type": "section",
+[
+	{
+		"type": "section",
+		"text": {
+			"type": "plain_text",
+			"text": "Here are papers you have marked.\nYou can manage them and generate BibTeX document for all of them.",
+			"emoji": true
+		}
+	},
+	{
+		"type": "divider"
+	},
+	{% for paper in marked_papers %}
+	{% if paper.source == "aminer" %}
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}{% if paper.url %}\n{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
+		},
+		"accessory": {
+			"type": "button",
 			"text": {
 				"type": "plain_text",
-				"text": "Here are papers you have marked.\nYou can manage them and generate BibTeX document for all of them.",
+				"text": "Delete",
 				"emoji": true
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{% for paper in marked_papers %}
-		{% if paper.source == "aminer" %}
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}{% if paper.url %}\n{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
 			},
-			"accessory": {
-				"type": "button",
-				"text": {
-					"type": "plain_text",
-					"text": "Delete",
-					"emoji": true
-				},
-				"value": "{{paper._id}},{{paper.source}}",
-				"action_id": "del"
-			}
-		},
-		{% else %}
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "{{loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\"{% if paper.year %} ({{paper.year}}){% endif %}{% if paper.ee %}\n{% if paper.ee is string %}{{paper.ee}}{% else %}{{paper.ee[0]}}{% endif %}{% endif %}"
-			},
-			"accessory": {
-				"type": "button",
-				"text": {
-					"type": "plain_text",
-					"text": "Delete",
-					"emoji": true
-				},
-				"value": "{{paper._id}},{{paper.source}}",
-				"action_id": "del"
-			}
-		},
-		{% endif %}
-		{% endfor %}
-		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "To generate BibTeX document for all the marked papers, please click this button 👉"
-			},
-			"accessory": {
-				"type": "button",
-				"text": {
-					"type": "plain_text",
-					"text": "Generate BibTeX",
-					"emoji": true
-				},
-				"value": "click_me_123",
-				"action_id": "button-action"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "If you want to clear the list, please click this button 👉"
-			},
-			"accessory": {
-				"type": "button",
-				"text": {
-					"type": "plain_text",
-					"text": "Delete all",
-					"emoji": true
-				},
-				"value": "click_me_123",
-				"action_id": "button-action"
-			}
+			"value": "{{list_id}},{{paper._id}},{{paper.source}}",
+			"action_id": "del"
 		}
-	]
-}
+	},
+	{% else %}
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "{{loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\"{% if paper.year %} ({{paper.year}}){% endif %}{% if paper.ee %}\n{% if paper.ee is string %}{{paper.ee}}{% else %}{{paper.ee[0]}}{% endif %}{% endif %}"
+		},
+		"accessory": {
+			"type": "button",
+			"text": {
+				"type": "plain_text",
+				"text": "Delete",
+				"emoji": true
+			},
+			"value": "{{list_id}},{{paper._id}},{{paper.source}}",
+			"action_id": "del"
+		}
+	},
+	{% endif %}
+	{% endfor %}
+	{
+		"type": "divider"
+	},
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "To generate BibTeX document for all the marked papers, please click this button 👉"
+		},
+		"accessory": {
+			"type": "button",
+			"text": {
+				"type": "plain_text",
+				"text": "Generate BibTeX",
+				"emoji": true
+			},
+			"value": "{{list_id}}",
+			"action_id": "bibtex"
+		}
+	},
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "If you want to clear the list, please click this button 👉"
+		},
+		"accessory": {
+			"type": "button",
+			"text": {
+				"type": "plain_text",
+				"text": "Delete all",
+				"emoji": true
+			},
+			"value": "{{list_id}}",
+			"action_id": "delall"
+		}
+	}
+]

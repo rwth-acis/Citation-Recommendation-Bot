@@ -1,10 +1,9 @@
-{
-	"blocks": [
+[
 		{
 			"type": "section",
 			"text": {
 				"type": "plain_text",
-				"text": "I found some suitable papers for your input☺️ These papers are ranked based on relevance scores (the first paper is the most relevant to you context).",
+				"text": "I found some suitable papers for your input ☺️ These papers are ranked based on relevance scores (the first paper is the most relevant to you context).",
 				"emoji": true
 			}
 		},
@@ -12,7 +11,7 @@
 			"type": "section",
 			"text": {
 				"type": "plain_text",
-				"text": "You can add individual paper to the marking list and can ask me to generate BibTeX document for it.",
+				"text": "You can add individual paper to the marking list and can ask me to generate BibTeX document for all the papers in the marking list.",
 				"emoji": true
 			}
 		},
@@ -26,72 +25,119 @@
 				"text": "*Citation context*: {{ context }}"
 			}
 		},
+        {% for paper in rec_list %}
+		{% if paper.source == "aminer" %}
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+			},
+			{% if paper.inList != true %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Add to list",
+					"emoji": true
+				},
+				"value": "rec,{{rec_list_id}},{{page}},{{paper._id}},{{paper.source}}",
+				"action_id": "add2list"
+			}
+			{% else %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "In the list",
+					"emoji": true
+				},
+				"value": "{{paper._id}},{{paper.source}}",
+				"action_id": "inList"
+			}
+			{% endif %}
+		},
+        {% else %}
+        {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "{{page * 5 + loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\"{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+			},
+			{% if paper.inList != true %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Add to list",
+					"emoji": true
+				},
+				"value": "rec,{{rec_list_id}},{{page}},{{paper._id}},{{paper.source}}",
+				"action_id": "add2list"
+			}
+			{% else %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "In the list",
+					"emoji": true
+				},
+				"value": "{{paper._id}},{{paper.source}}",
+				"action_id": "inList"
+			}
+			{% endif %}
+		},
+        {% endif %}
+		{% endfor %}
 		{
 			"type": "actions",
 			"elements": [
+				{% if page != 0%}
 				{
-					"type": "checkboxes",
-					"options": [
-						{% for paper in rec_list %}
-						{% if paper.source == "aminer" %}
-						{
-							"text": {
-								"type": "mrkdwn",
-								"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}"
-							},
-							"description": {
-								"type": "mrkdwn",
-								"text": "{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance: {{"%0.3f"|format(paper.rel_score)}}"
-							},
-							"value": "{{paper._id}},{{paper.source}}"
-						},
-						{% else %}
-						{
-							"text": {
-								"type": "mrkdwn",
-								"text": "{{loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\"{% if paper.year %} ({{paper.year}}){% endif %}"
-							},
-							"description": {
-								"type": "mrkdwn",
-								"text": "{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance: {{"%0.3f"|format(paper.rel_score)}}"
-							},
-							"value": "{{paper._id}},{{paper.source}}"
-						},
-						{% endif %}
-						{% endfor %}
-					],
-					"action_id": "rec"
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "Previous page",
+						"emoji": true
+					},
+					"value": "{{rec_list_id}},{{page-1}}",
+					"action_id": "previous_rec"
+				},
+				{% endif %}
+				{% if page != 9 %}
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "Next page",
+						"emoji": true
+					},
+					"value": "{{rec_list_id}},{{page+1}}",
+					"action_id": "next_rec"
 				}
+				{% endif %}
 			]
 		},
 		{
 			"type": "divider"
 		},
-		{% if rec_list_ref %}
+		{% if ref_list_id %}
 		{
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "The following papers which have been cited many by the above papers might also be worth-reading:"
+				"text": "I also found some papers that are cited many times by above papers, clike this button to see them 👉"
 			},
 			"accessory": {
-				"type": "checkboxes",
-				"options": [
-					{% for paper in rec_list_ref %}						
-					{
-						"text": {
-							"type": "mrkdwn",
-							"text": "{{loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}"
-						},
-						"description": {
-							"type": "mrkdwn",
-							"text": "{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
-						},
-						"value": "{{paper._id}},{{paper.source}}"
-					},
-					{% endfor %}
-				],
-				"action_id": "ref"
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "See classic papers",
+					"emoji": true
+				},
+				"value": "{{ref_list_id}}",
+				"action_id": "classic"
 			}
 		},
 		{
@@ -102,61 +148,7 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "To see more relevant papers, please click this button 👉"
-			},
-			"accessory": {
-				"type": "button",
-				"text": {
-					"type": "plain_text",
-					"text": "More papers",
-					"emoji": true
-				},
-				"value": "more",
-				"action_id": "more"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "To add selected papers to the marking list, please click this button 👉"
-			},
-			"accessory": {
-				"type": "button",
-				"text": {
-					"type": "plain_text",
-					"text": "Add to list",
-					"emoji": true
-				},
-				"value": "add2list",
-				"action_id": "add2list"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "To generate BibTeX document for selected papers, please click this button 👉"
-			},
-			"accessory": {
-				"type": "button",
-				"text": {
-					"type": "plain_text",
-					"text": "Generate BibTeX",
-					"emoji": true
-				},
-				"value": "bibtex",
-				"action_id": "bibtex"
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "If you found some papers are with wrong information, I am glad to know and correct them💪"
+				"text": "If you found some papers are with wrong information, I am glad to know and correct them 💪"
 			},
 			"accessory": {
 				"type": "button",
@@ -170,4 +162,3 @@
 			}
 		}
 	]
-}
