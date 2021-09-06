@@ -3,7 +3,7 @@ from bson.objectid import ObjectId
 import pymongo
 import datetime
 
-# from CitRec import CitRec
+from CitRec import CitRec
 import CitBot
 
 app = Flask(__name__)
@@ -17,12 +17,12 @@ aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 
 
-# @app.route("/rec/<payload>")
-# def rec(payload):
-#     payload = eval(payload)
-#     citrec = CitRec()
-#     rec_list, ref_list = citrec(payload["context"])
-#     return CitBot.generate_rec_result(context=payload["context"], rec_list=rec_list, ref_list=ref_list, user_id=payload["user"])
+@app.route("/rec/<payload>")
+def rec(payload):
+    payload = eval(payload)
+    citrec = CitRec()
+    rec_list, ref_list = citrec(payload["context"])
+    return CitBot.generate_rec_result(context=payload["context"], rec_list=rec_list, ref_list=ref_list, user_id=payload["user"])
 
 
 @app.route("/actions/<payload>")
