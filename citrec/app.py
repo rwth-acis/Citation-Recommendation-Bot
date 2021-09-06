@@ -3,7 +3,7 @@ from bson.objectid import ObjectId
 import pymongo
 import datetime
 
-from CitRec import CitRec
+# from CitRec import CitRec
 import CitBot
 
 app = Flask(__name__)
@@ -17,12 +17,12 @@ aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 
 
-@app.route("/rec/<payload>")
-def rec(payload):
-    payload = eval(payload)
-    citrec = CitRec()
-    rec_list, ref_list = citrec(payload["context"])
-    return CitBot.generate_rec_result(context=payload["context"], rec_list=rec_list, ref_list=ref_list, user_id=payload["user"])
+# @app.route("/rec/<payload>")
+# def rec(payload):
+#     payload = eval(payload)
+#     citrec = CitRec()
+#     rec_list, ref_list = citrec(payload["context"])
+#     return CitBot.generate_rec_result(context=payload["context"], rec_list=rec_list, ref_list=ref_list, user_id=payload["user"])
 
 
 @app.route("/actions/<payload>")
@@ -66,10 +66,23 @@ def actions(payload):
             value=actionInfo["value"], time=payload["time"], user_id=payload["user"]
         )
     
+    # TODO send modal for confirmation 
     elif actionInfo["actionId"] == "delall":
-        return 
+        return {"text": "This feature is under development."}
 
-    return {"text": "An error occurred 😖"}
+    elif actionInfo["actionId"] == "next_kw" or actionInfo["actionId"] == "previous_kw":
+        return CitBot.flip_page_kw(value=actionInfo["value"], time=payload["time"])
+
+    # TODO send bibtex doc
+    elif actionInfo["actionId"] == "bibtex":
+        return {"text": "This feature is under development."}
+    
+    # TODO send feedback
+    elif actionInfo["actionId"] == "feedback":
+        return {"text": "This feature is under development."}
+
+    else:
+        return {"text": "An error occurred 😖"}
 
 
 @app.route("/lists/<payload>")
@@ -77,7 +90,6 @@ def lists(payload):
     payload = eval(payload)
     user_id = str(payload["user"])
     list_id, marked_papers = CitBot.find_papers_in_list(user_id)
-    print(len(marked_papers))
     if not list_id:
         return {
             "text": "No papers in your marking list (or data expired due to long periods of inactivity), please add items into the marking list at first 🥺"
@@ -92,3 +104,10 @@ def lists(payload):
                 next_page=True if len(marked_papers) > 5 else False,
             )
         }
+
+
+@app.route("/keywords/<payload>")
+def keywords(payload):
+    payload = eval(payload)
+    print(payload)
+    return CitBot.keywords_search(keywords=payload["keywords"], user_id=payload["user"])

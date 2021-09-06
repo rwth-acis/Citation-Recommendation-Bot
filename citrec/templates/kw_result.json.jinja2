@@ -1,0 +1,142 @@
+[
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "I found some papers contain the keywords ☺️",
+				"emoji": true
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "plain_text",
+				"text": "You can add individual paper to the marking list and can ask me to generate BibTeX document for all the papers in the marking list.",
+				"emoji": true
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Keywords*: {{ keywords }}"
+			}
+		},
+        {% for paper in kw_list %}
+		{% if paper.source == "aminer" %}
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
+			},
+			{% if paper.inList != true %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Add to list",
+					"emoji": true
+				},
+				"value": "kw,{{kw_list_id}},{{page}},{{paper._id}},{{paper.source}}",
+				"action_id": "add2list"
+			}
+			{% else %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "In the list",
+					"emoji": true
+				},
+				"value": "{{paper._id}},{{paper.source}}",
+				"action_id": "inList"
+			}
+			{% endif %}
+		},
+        {% else %}
+        {
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "{{page * 5 + loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author}}, et al. {% else %}{{paper.author[0]}}, et al. {%endif%}{%endif%}\"{{paper.title}}\"{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}{% else %}{{paper.ee[0]}}{% endif %}{% endif %}"
+			},
+			{% if paper.inList != true %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Add to list",
+					"emoji": true
+				},
+				"value": "kw,{{kw_list_id}},{{page}},{{paper._id}},{{paper.source}}",
+				"action_id": "add2list"
+			}
+			{% else %}
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "In the list",
+					"emoji": true
+				},
+				"value": "{{paper._id}},{{paper.source}}",
+				"action_id": "inList"
+			}
+			{% endif %}
+		},
+        {% endif %}
+		{% endfor %}
+		{
+			"type": "actions",
+			"elements": [
+				{% if page != 0%}
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "Previous page",
+						"emoji": true
+					},
+					"value": "{{kw_list_id}},{{page-1}}",
+					"action_id": "previous_kw"
+				},
+				{% endif %}
+				{% if page != 9 %}
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "Next page",
+						"emoji": true
+					},
+					"value": "{{kw_list_id}},{{page+1}}",
+					"action_id": "next_kw"
+				}
+				{% endif %}
+			]
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "If you found some papers are with wrong information, I am glad to know and correct them 💪"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Send feedback",
+					"emoji": true
+				},
+				"value": "feedback",
+				"action_id": "feedback"
+			}
+		}
+	]

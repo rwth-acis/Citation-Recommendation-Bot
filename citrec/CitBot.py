@@ -32,7 +32,10 @@ def generate_rec_result(context, rec_list, ref_list, user_id):
                 else:
                     paper["inList"] = False
     except StopIteration:
-        pass
+        for paper in rec_list:
+            paper["inList"] = False
+        if ref_list:
+            paper["inList"] = False
 
     # found classic papers
     if ref_list:
@@ -155,7 +158,7 @@ def flip_page_ref(value, time):
 
 
 def add_to_list(value, time, user_id):
-    rec_or_ref, ind, page, paper_id, paper_source = tuple(value.split(","))
+    rec_or_ref_or_kw, ind, page, paper_id, paper_source = tuple(value.split(","))
     page = int(page)
     mark = [paper_id + "," + paper_source]
     try:
@@ -178,21 +181,41 @@ def add_to_list(value, time, user_id):
         )
 
     try:
-        rec_or_ref_result = results.find({"_id": ObjectId(ind)}).next()
-        for paper in (rec_or_ref_result["papers"])[(page * 5) :]:
+        rec_or_ref_or_kw_result = results.find({"_id": ObjectId(ind)}).next()
+        for paper in (rec_or_ref_or_kw_result["papers"])[(page * 5) :]:
             if paper["_id"] == paper_id or paper["_id"] == ObjectId(paper_id):
                 paper["inList"] = True
         results.update_one(
-            {"_id": ObjectId(ind)}, {"$set": {"papers": rec_or_ref_result["papers"]}}
+            {"_id": ObjectId(ind)},
+            {"$set": {"papers": rec_or_ref_or_kw_result["papers"]}},
         )
-        if rec_or_ref == "rec":
+        if rec_or_ref_or_kw == "rec":
             return {
                 "blocks": render_template(
                     "rec_result.json.jinja2",
-                    context=rec_or_ref_result["context"],
-                    rec_list=rec_or_ref_result["papers"][(page * 5) : (page * 5 + 5)],
-                    rec_list_id=rec_or_ref_result["_id"],
-                    ref_list_id=rec_or_ref_result["refId"],
+                    context=rec_or_ref_or_kw_result["context"],
+                    rec_list=rec_or_ref_or_kw_result["papers"][
+                        (page * 5) : (page * 5 + 5)
+                    ],
+                    rec_list_id=rec_or_ref_or_kw_result["_id"],
+                    ref_list_id=rec_or_ref_or_kw_result["refId"],
+                    page=page,
+                ),
+                "updateBlock": "true",
+                "ts": time,
+            }
+        elif rec_or_ref_or_kw == "ref":
+            return {
+                "blocks": render_template(
+                    "ref_result.json.jinja2",
+                    context=rec_or_ref_or_kw_result["context"],
+                    ref_list=rec_or_ref_or_kw_result["papers"][
+                        (page * 5) : (page * 5 + 5)
+                    ],
+                    ref_list_id=rec_or_ref_or_kw_result["_id"],
+                    next_page=True
+                    if len(rec_or_ref_or_kw_result["papers"][(page * 5) :]) > 5
+                    else False,
                     page=page,
                 ),
                 "updateBlock": "true",
@@ -201,13 +224,12 @@ def add_to_list(value, time, user_id):
         else:
             return {
                 "blocks": render_template(
-                    "ref_result.json.jinja2",
-                    context=rec_or_ref_result["context"],
-                    ref_list=rec_or_ref_result["papers"][(page * 5) : (page * 5 + 5)],
-                    ref_list_id=rec_or_ref_result["_id"],
-                    next_page=True
-                    if len(rec_or_ref_result["papers"][(page * 5) :]) > 5
-                    else False,
+                    "kw_result.json.jinja2",
+                    keywords=rec_or_ref_or_kw_result["keywords"],
+                    kw_list=rec_or_ref_or_kw_result["papers"][
+                        (page * 5) : (page * 5 + 5)
+                    ],
+                    kw_list_id=rec_or_ref_or_kw_result["_id"],
                     page=page,
                 ),
                 "updateBlock": "true",
@@ -371,4 +393,126 @@ def del_paper_in_list(value, time, user_id):
             ),
             "updateBlock": "true",
             "ts": time,
+        }
+
+
+def keywords_search(keywords, user_id):
+    aminer_result = list(
+        aminer.find(
+            {"$text": {"$search": keywords}},
+            {
+                "title": 1,
+                "authors.name": 1,
+                "venue.raw": 1,
+                "year": 1,
+                "url": 1,
+                "source": "aminer",
+                "score": {"$meta": "textScore"},
+            },
+        )
+        .sort("score", {"$meta": "textScore"})
+        .limit(50)
+    )
+    dblp_result = list(
+        dblp.find(
+            {"$text": {"$search": keywords}},
+            {
+                "title": 1,
+                "author": 1,
+                "year": 1,
+                "booktitle": 1,
+                "journal": 1,
+                "ee": 1,
+                "source": "dblp",
+                "score": {"$meta": "textScore"},
+            },
+        )
+        .sort("score", {"$meta": "textScore"})
+        .limit(50)
+    )
+
+    if aminer_result and dblp_result:
+        i_aminer = 0
+        i_dblp = 0
+        kw_list = []
+        len_aminer = len(aminer_result)
+        len_dblp = len(dblp_result)
+        while i_aminer < len_aminer or i_dblp < len_dblp:
+            if i_aminer < len_aminer and i_dblp < len_dblp:
+                if dblp_result[i_dblp]["score"] >= aminer_result[i_aminer]["score"]:
+                    kw_list.append(dblp_result[i_dblp])
+                    i_dblp += 1
+                    print(i_dblp)
+                else:
+                    kw_list.append(aminer_result[i_aminer])
+                    i_aminer += 1
+            elif i_dblp < len_dblp:
+                while i_dblp < len_dblp:
+                    kw_list.append(dblp_result[i_dblp])
+                    i_dblp += 1
+            elif i_aminer < len_aminer:
+                while i_aminer < len_aminer:
+                    kw_list.append(aminer_result[i_aminer])
+                    i_aminer += 1
+    elif aminer_result:
+        kw_list = aminer_result
+    elif dblp_result:
+        kw_list = dblp_result
+    else:
+        kw_list = []
+
+    if kw_list:
+        try:
+            marked_papers = mark_lists.find({"_id": user_id}).next()["marked"]
+            for paper in kw_list:
+                id_source = str(paper["_id"]) + "," + paper["source"]
+                if id_source in marked_papers:
+                    paper["inList"] = True
+                else:
+                    paper["inList"] = False
+        except StopIteration:
+            for paper in kw_list:
+                paper["inList"] = False
+
+        kw_list_id = ObjectId()
+        results.insert_one(
+            {
+                "_id": kw_list_id,
+                "keywords": keywords,
+                "papers": kw_list,
+                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            }
+        )
+        return {
+            "blocks": render_template(
+                "kw_result.json.jinja2",
+                keywords=keywords,
+                kw_list=kw_list[:5],
+                kw_list_id=kw_list_id,
+                page=0,
+            )
+        }
+    else:
+        return {"text": "No paper has been found."}
+
+
+def flip_page_kw(value, time):
+    kw_list_id, page = tuple(value.split(","))
+    page = int(page)
+    try:
+        kw_list = results.find({"_id": ObjectId(kw_list_id)}).next()
+        return {
+            "blocks": render_template(
+                "kw_result.json.jinja2",
+                keywords=kw_list["keywords"],
+                kw_list=kw_list["papers"][(page * 5) : (page * 5 + 5)],
+                kw_list_id=kw_list["_id"],
+                page=page,
+            ),
+            "updateBlock": "true",
+            "ts": time,
+        }
+    except StopIteration:
+        return {
+            "text": "This is an outdated message (more than 60 minutes), please send me the keywords again 🥺"
         }
