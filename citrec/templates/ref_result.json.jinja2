@@ -57,7 +57,7 @@
         {% endif %}
     },
     {% endfor %}
-    {% if (page != 0) and (next_page == true) %}
+    {% if (page != 0) or (next_page == true) %}
     {
         "type": "actions",
         "elements": [
