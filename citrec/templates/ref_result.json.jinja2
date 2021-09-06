@@ -30,7 +30,7 @@
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": "{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name}}, et al. {% endif %}{% if paper.title %}\"{{paper.title}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
+            "text": "*{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
         },
         {% if paper.inList != true %}
         "accessory": {

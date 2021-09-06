@@ -1,7 +1,5 @@
 from flask import Flask, render_template
-from bson.objectid import ObjectId
 import pymongo
-import datetime
 
 from CitRec import CitRec
 import CitBot
@@ -66,6 +64,10 @@ def actions(payload):
             value=actionInfo["value"], time=payload["time"], user_id=payload["user"]
         )
     
+    # TODO Delete this paper from the list
+    elif actionInfo["actionId"] == "inList":
+        return {"text": "This feature is under development."}
+    
     # TODO send modal for confirmation 
     elif actionInfo["actionId"] == "delall":
         return {"text": "This feature is under development."}
@@ -92,7 +94,7 @@ def lists(payload):
     list_id, marked_papers = CitBot.find_papers_in_list(user_id)
     if not list_id:
         return {
-            "text": "No papers in your marking list (or data expired due to long periods of inactivity), please add items into the marking list at first 🥺"
+            "text": "No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺"
         }
     else:
         return {

@@ -442,7 +442,6 @@ def keywords_search(keywords, user_id):
                 if dblp_result[i_dblp]["score"] >= aminer_result[i_aminer]["score"]:
                     kw_list.append(dblp_result[i_dblp])
                     i_dblp += 1
-                    print(i_dblp)
                 else:
                     kw_list.append(aminer_result[i_aminer])
                     i_aminer += 1
