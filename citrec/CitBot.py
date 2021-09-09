@@ -352,7 +352,7 @@ def del_paper_in_list(value, time, channel_id):
     try:
         marked_papers = mark_lists.find({"_id": channel_id}).next()["marked"]
     except StopIteration:
-        return {"text": 'This message is outdated, please send me "!list" again 🥺'}
+        return {"text": '"No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺"'}
 
     try:
         # delete the papers id in Lists
@@ -379,7 +379,7 @@ def del_paper_in_list(value, time, channel_id):
             "ts": time,
         }
     # no temp, find papers in list again
-    except (StopIteration, ValueError):
+    except StopIteration:
         list_id, marked_papers = find_papers_in_list(channel_id)
         return {
             "blocks": render_template(
@@ -392,6 +392,8 @@ def del_paper_in_list(value, time, channel_id):
             "updateBlock": "true",
             "ts": time,
         }
+    except ValueError: 
+        return {"text": "This message is outdated, please send me \"!list\" again 🥺"}
 
 
 def delete_all(channel_id):
@@ -524,18 +526,19 @@ def remove_from_list(value, time, channel_id):
     rec_or_ref_or_kw, ind, page, paper_id, paper_source = tuple(value.split(","))
     page = int(page)
     remove = paper_id + "," + paper_source
-    mark_lists.remove(remove)
     try:
+        marked_papers = mark_lists.find({"_id": channel_id}).next()["marked"]
+        marked_papers.remove(remove)
         mark_lists.update(
             {"_id": channel_id},
             {
                 # delete duplicate papers
-                "marked": mark_lists,
+                "marked": marked_papers,
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=60),
             },
         )
     except Exception:
-        return {"text": "This item is not in you marking list."}
+        pass
 
     try:
         rec_or_ref_or_kw_result = results.find({"_id": ObjectId(ind)}).next()

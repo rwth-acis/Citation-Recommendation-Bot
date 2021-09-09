@@ -1,8 +1,14 @@
 from flask import Flask, render_template
 import pymongo
 
-from CitRec import CitRec
+# from CitRec import CitRec
 import CitBot
+
+K = 50
+if K % 5 == 0:
+    PAGE_MAX = K//5
+else: 
+    PAGE_MAX = K//5 + 1
 
 app = Flask(__name__)
 server_adress = "localhost:27017"
@@ -15,17 +21,17 @@ aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 
 
-@app.route("/rec/<payload>")
-def rec(payload):
-    payload = eval(payload)
-    citrec = CitRec()
-    rec_list, ref_list = citrec(payload["context"])
-    return CitBot.generate_rec_result(
-        context=payload["context"],
-        rec_list=rec_list,
-        ref_list=ref_list,
-        channel_id=payload["channel"],
-    )
+# @app.route("/rec/<payload>")
+# def rec(payload):
+#     payload = eval(payload)
+#     citrec = CitRec()
+#     rec_list, ref_list = citrec(context=payload["context"], k=K)
+#     return CitBot.generate_rec_result(
+#         context=payload["context"],
+#         rec_list=rec_list,
+#         ref_list=ref_list,
+#         channel_id=payload["channel"],
+#     )
 
 
 @app.route("/actions/<payload>")
@@ -113,7 +119,7 @@ def lists(payload):
     payload = eval(payload)
     channel_id = payload["channel"]
     list_id, marked_papers = CitBot.find_papers_in_list(channel_id)
-    if not list_id:
+    if (not list_id) or marked_papers == []:
         return {
             "text": "No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺"
         }
