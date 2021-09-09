@@ -523,7 +523,7 @@ def flip_page_kw(value, time):
 def remove_from_list(value, time, channel_id):
     rec_or_ref_or_kw, ind, page, paper_id, paper_source = tuple(value.split(","))
     page = int(page)
-    remove = [paper_id + "," + paper_source]
+    remove = paper_id + "," + paper_source
 
     try:
         mark_lists.update(
