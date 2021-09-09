@@ -4,11 +4,12 @@ import pymongo
 # from CitRec import CitRec
 import CitBot
 
+
 K = 50
 if K % 5 == 0:
-    PAGE_MAX = K//5
-else: 
-    PAGE_MAX = K//5 + 1
+    PAGE_MAX = K // 5 - 1
+else:
+    PAGE_MAX = K // 5
 
 app = Flask(__name__)
 server_adress = "localhost:27017"
@@ -31,6 +32,7 @@ dblp = db_citrec["DBLP"]
 #         rec_list=rec_list,
 #         ref_list=ref_list,
 #         channel_id=payload["channel"],
+#         PAGE_MAX=PAGE_MAX,
 #     )
 
 
@@ -42,7 +44,9 @@ def actions(payload):
 
     # when clicking previous page and next page in recommendation result list
     if actionInfo["actionId"] == "next_rec" or actionInfo["actionId"] == "previous_rec":
-        return CitBot.flip_page_rec(value=actionInfo["value"], time=payload["time"])
+        return CitBot.flip_page_rec(
+            value=actionInfo["value"], time=payload["time"], PAGE_MAX=PAGE_MAX
+        )
 
     # when clicking see classic papers
     elif actionInfo["actionId"] == "classic":
@@ -60,6 +64,7 @@ def actions(payload):
             value=actionInfo["value"],
             time=payload["time"],
             channel_id=payload["channel"],
+            PAGE_MAX=PAGE_MAX,
         )
 
     # when clicking the delete button
@@ -86,6 +91,7 @@ def actions(payload):
             value=actionInfo["value"],
             time=payload["time"],
             channel_id=payload["channel"],
+            PAGE_MAX=PAGE_MAX,
         )
 
     elif actionInfo["actionId"] == "delall":
@@ -100,7 +106,9 @@ def actions(payload):
         return CitBot.delete_all(channel_id=payload["channel"])
 
     elif actionInfo["actionId"] == "next_kw" or actionInfo["actionId"] == "previous_kw":
-        return CitBot.flip_page_kw(value=actionInfo["value"], time=payload["time"])
+        return CitBot.flip_page_kw(
+            value=actionInfo["value"], time=payload["time"], PAGE_MAX=PAGE_MAX
+        )
 
     # TODO send bibtex doc
     elif actionInfo["actionId"] == "bibtex":
@@ -140,5 +148,8 @@ def keywords(payload):
     payload = eval(payload)
     print(payload)
     return CitBot.keywords_search(
-        keywords=payload["keywords"], channel_id=payload["channel"]
+        keywords=payload["keywords"],
+        channel_id=payload["channel"],
+        k=K,
+        PAGE_MAX=PAGE_MAX,
     )

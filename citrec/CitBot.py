@@ -15,7 +15,7 @@ aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 
 
-def generate_rec_result(context, rec_list, ref_list, channel_id):
+def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
     try:
         marked_papers = mark_lists.find({"_id": channel_id}).next()["marked"]
         for paper in rec_list:
@@ -66,6 +66,7 @@ def generate_rec_result(context, rec_list, ref_list, channel_id):
                 rec_list_id=rec_list_id,
                 ref_list_id=ref_list_id,
                 page=0,
+                PAGE_MAX=PAGE_MAX,
             )
         }
 
@@ -88,11 +89,12 @@ def generate_rec_result(context, rec_list, ref_list, channel_id):
                 rec_list_id=rec_list_id,
                 ref_list_id=None,
                 page=0,
+                PAGE_MAX=PAGE_MAX,
             )
         }
 
 
-def flip_page_rec(value, time):
+def flip_page_rec(value, time, PAGE_MAX):
     rec_list_id, page = tuple(value.split(","))
     page = int(page)
     try:
@@ -105,6 +107,7 @@ def flip_page_rec(value, time):
                 rec_list_id=rec_list["_id"],
                 ref_list_id=rec_list["refId"],
                 page=page,
+                PAGE_MAX=PAGE_MAX,
             ),
             "updateBlock": "true",
             "ts": time,
@@ -157,7 +160,7 @@ def flip_page_ref(value, time):
         }
 
 
-def add_to_list(value, time, channel_id):
+def add_to_list(value, time, channel_id, PAGE_MAX):
     rec_or_ref_or_kw, ind, page, paper_id, paper_source = tuple(value.split(","))
     page = int(page)
     mark = [paper_id + "," + paper_source]
@@ -200,6 +203,7 @@ def add_to_list(value, time, channel_id):
                     rec_list_id=rec_or_ref_or_kw_result["_id"],
                     ref_list_id=rec_or_ref_or_kw_result["refId"],
                     page=page,
+                    PAGE_MAX=PAGE_MAX,
                 ),
                 "updateBlock": "true",
                 "ts": time,
@@ -231,6 +235,7 @@ def add_to_list(value, time, channel_id):
                     ],
                     kw_list_id=rec_or_ref_or_kw_result["_id"],
                     page=page,
+                    PAGE_MAX=PAGE_MAX,
                 ),
                 "updateBlock": "true",
                 "ts": time,
@@ -352,7 +357,9 @@ def del_paper_in_list(value, time, channel_id):
     try:
         marked_papers = mark_lists.find({"_id": channel_id}).next()["marked"]
     except StopIteration:
-        return {"text": '"No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺"'}
+        return {
+            "text": "No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺" 
+        }
 
     try:
         # delete the papers id in Lists
@@ -392,8 +399,8 @@ def del_paper_in_list(value, time, channel_id):
             "updateBlock": "true",
             "ts": time,
         }
-    except ValueError: 
-        return {"text": "This message is outdated, please send me \"!list\" again 🥺"}
+    except ValueError:
+        return {"text": 'This message is outdated, please send me "!list" again 🥺'}
 
 
 def delete_all(channel_id):
@@ -401,7 +408,7 @@ def delete_all(channel_id):
     return {"text": "All the papers in the marking list have been deleted."}
 
 
-def keywords_search(keywords, channel_id):
+def keywords_search(keywords, channel_id, k, PAGE_MAX):
     aminer_result = list(
         aminer.find(
             {"$text": {"$search": keywords}},
@@ -442,7 +449,7 @@ def keywords_search(keywords, channel_id):
         kw_list = []
         len_aminer = len(aminer_result)
         len_dblp = len(dblp_result)
-        while i_aminer < len_aminer or i_dblp < len_dblp:
+        while (i_aminer < len_aminer or i_dblp < len_dblp) and len(kw_list) < k:
             if i_aminer < len_aminer and i_dblp < len_dblp:
                 if dblp_result[i_dblp]["score"] >= aminer_result[i_aminer]["score"]:
                     kw_list.append(dblp_result[i_dblp])
@@ -494,13 +501,14 @@ def keywords_search(keywords, channel_id):
                 kw_list=kw_list[:5],
                 kw_list_id=kw_list_id,
                 page=0,
+                PAGE_MAX=PAGE_MAX,
             )
         }
     else:
         return {"text": "No paper has been found."}
 
 
-def flip_page_kw(value, time):
+def flip_page_kw(value, time, PAGE_MAX):
     kw_list_id, page = tuple(value.split(","))
     page = int(page)
     try:
@@ -512,6 +520,7 @@ def flip_page_kw(value, time):
                 kw_list=kw_list["papers"][(page * 5) : (page * 5 + 5)],
                 kw_list_id=kw_list["_id"],
                 page=page,
+                PAGE_MAX=PAGE_MAX,
             ),
             "updateBlock": "true",
             "ts": time,
@@ -522,7 +531,7 @@ def flip_page_kw(value, time):
         }
 
 
-def remove_from_list(value, time, channel_id):
+def remove_from_list(value, time, channel_id, PAGE_MAX):
     rec_or_ref_or_kw, ind, page, paper_id, paper_source = tuple(value.split(","))
     page = int(page)
     remove = paper_id + "," + paper_source
@@ -560,6 +569,7 @@ def remove_from_list(value, time, channel_id):
                     rec_list_id=rec_or_ref_or_kw_result["_id"],
                     ref_list_id=rec_or_ref_or_kw_result["refId"],
                     page=page,
+                    PAGE_MAX=PAGE_MAX,
                 ),
                 "updateBlock": "true",
                 "ts": time,
@@ -577,6 +587,7 @@ def remove_from_list(value, time, channel_id):
                     if len(rec_or_ref_or_kw_result["papers"][(page * 5) :]) > 5
                     else False,
                     page=page,
+                    PAGE_MAX=PAGE_MAX,
                 ),
                 "updateBlock": "true",
                 "ts": time,
@@ -591,6 +602,7 @@ def remove_from_list(value, time, channel_id):
                     ],
                     kw_list_id=rec_or_ref_or_kw_result["_id"],
                     page=page,
+                    PAGE_MAX=PAGE_MAX,
                 ),
                 "updateBlock": "true",
                 "ts": time,
