@@ -524,17 +524,17 @@ def remove_from_list(value, time, channel_id):
     rec_or_ref_or_kw, ind, page, paper_id, paper_source = tuple(value.split(","))
     page = int(page)
     remove = paper_id + "," + paper_source
-
+    mark_lists.remove(remove)
     try:
         mark_lists.update(
             {"_id": channel_id},
             {
                 # delete duplicate papers
-                "marked": mark_lists.remove(remove),
+                "marked": mark_lists,
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=60),
             },
         )
-    except:
+    except Exception:
         return {"text": "This item is not in you marking list."}
 
     try:
