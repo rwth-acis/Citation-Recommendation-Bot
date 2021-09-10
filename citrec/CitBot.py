@@ -13,7 +13,9 @@ results = db_citbot["Results"]
 db_citrec = client["CitRec"]
 aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
-
+"""These codes are for evaluation"""
+evaluation = db_citbot["Evaluation"]
+""""""""""""""""end"""""""""""""""""
 
 def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
     try:
@@ -35,7 +37,8 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
         for paper in rec_list:
             paper["inList"] = False
         if ref_list:
-            paper["inList"] = False
+            for paper in ref_list:
+                paper["inList"] = False
 
     # found classic papers
     if ref_list:
@@ -58,6 +61,13 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             }
         )
+        """These codes are for evaluation"""
+        add2list = 0
+        for paper in rec_list[:5]:
+            if paper["inList"] == True:
+                add2list += 1
+        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 1, "add2list": add2list})
+        """"""""""""""""end"""""""""""""""""
         return {
             "blocks": render_template(
                 "rec_result.json.jinja2",
@@ -81,6 +91,13 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             }
         )
+        """These codes are for evaluation"""
+        add2list = 0
+        for paper in rec_list[:5]:
+            if paper["inList"] == True:
+                add2list += 1
+        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 0, "add2list": add2list})
+        """"""""""""""""end"""""""""""""""""
         return {
             "blocks": render_template(
                 "rec_result.json.jinja2",
@@ -99,6 +116,16 @@ def flip_page_rec(value, time, PAGE_MAX):
     page = int(page)
     try:
         rec_list = results.find({"_id": ObjectId(rec_list_id)}).next()
+        """These codes are for evaluation"""
+        log = evaluation.find({"_id": ObjectId(rec_list_id)}).next()
+        if log["max_page"] < page:
+            add2list = 0
+            for paper in rec_list["papers"][(page * 5) : (page * 5 + 5)]:
+                if paper["inList"]:
+                    add2list += 1
+            evaluation.update_one({"_id": ObjectId(rec_list_id)}, {"$set": {"max_page": page, "add2list": (log["add2list"] + add2list)}})
+            
+        """"""""""""""""end"""""""""""""""""
         return {
             "blocks": render_template(
                 "rec_result.json.jinja2",
@@ -169,7 +196,7 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
             {
                 "_id": channel_id,
                 "marked": mark,
-                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=60),
+                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=180),
             }
         )
     except pymongo.errors.DuplicateKeyError:
@@ -179,7 +206,7 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
             {
                 # delete duplicate papers
                 "marked": sorted(set(mark), key=mark.index),
-                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=60),
+                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=180),
             },
         )
 
@@ -193,6 +220,10 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
             {"$set": {"papers": rec_or_ref_or_kw_result["papers"]}},
         )
         if rec_or_ref_or_kw == "rec":
+            """These codes are for evaluation"""
+            log = evaluation.find({"_id": ObjectId(ind)}).next()
+            evaluation.update_one({"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] + 1}})
+            """"""""""""""""end"""""""""""""""""
             return {
                 "blocks": render_template(
                     "rec_result.json.jinja2",
@@ -559,6 +590,10 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
             {"$set": {"papers": rec_or_ref_or_kw_result["papers"]}},
         )
         if rec_or_ref_or_kw == "rec":
+            """These codes are for evaluation"""
+            log = evaluation.find({"_id": ObjectId(ind)}).next()
+            evaluation.update_one({"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] - 1}})
+            """"""""""""""""end"""""""""""""""""
             return {
                 "blocks": render_template(
                     "rec_result.json.jinja2",
@@ -611,3 +646,7 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
         return {
             "text": 'I have deleted this paper from the marking list, send "!list" to see the marking list 😉\n However, this message is outdated, so I could not update the message 🥺'
         }
+
+
+def generate_bibtex(channel_id):
+    pass

@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 import pymongo
 
-# from CitRec import CitRec
+from CitRec import CitRec
 import CitBot
 
 
@@ -22,18 +22,18 @@ aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 
 
-# @app.route("/rec/<payload>")
-# def rec(payload):
-#     payload = eval(payload)
-#     citrec = CitRec()
-#     rec_list, ref_list = citrec(context=payload["context"], k=K)
-#     return CitBot.generate_rec_result(
-#         context=payload["context"],
-#         rec_list=rec_list,
-#         ref_list=ref_list,
-#         channel_id=payload["channel"],
-#         PAGE_MAX=PAGE_MAX,
-#     )
+@app.route("/rec/<payload>")
+def rec(payload):
+    payload = eval(payload)
+    citrec = CitRec()
+    rec_list, ref_list = citrec(context=payload["context"], k=K)
+    return CitBot.generate_rec_result(
+        context=payload["context"],
+        rec_list=rec_list,
+        ref_list=ref_list,
+        channel_id=payload["channel"],
+        PAGE_MAX=PAGE_MAX,
+    )
 
 
 @app.route("/actions/<payload>")
@@ -112,7 +112,7 @@ def actions(payload):
 
     # TODO send bibtex doc
     elif actionInfo["actionId"] == "bibtex":
-        return {"text": "This feature is under development."}
+        return CitBot.generate_bibtex(channel_id=payload["channel"])
 
     # TODO send feedback
     elif actionInfo["actionId"] == "feedback":
