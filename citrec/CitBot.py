@@ -66,7 +66,7 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
         for paper in rec_list[:5]:
             if paper["inList"] == True:
                 add2list += 1
-        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 1, "add2list": add2list})
+        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 1, "add2list": add2list, "context": context})
         """"""""""""""""end"""""""""""""""""
         return {
             "blocks": render_template(
@@ -96,7 +96,7 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
         for paper in rec_list[:5]:
             if paper["inList"] == True:
                 add2list += 1
-        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 1, "add2list": add2list})
+        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 1, "add2list": add2list, "context": context})
         """"""""""""""""end"""""""""""""""""
         return {
             "blocks": render_template(
