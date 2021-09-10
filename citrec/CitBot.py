@@ -445,8 +445,8 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
             {
                 "title": 1,
                 "authors.name": 1,
-                "venue.raw": 1,
                 "year": 1,
+                "doi": 1,
                 "url": 1,
                 "source": "aminer",
                 "score": {"$meta": "textScore"},
@@ -503,6 +503,37 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
         kw_list = []
 
     if kw_list:
+        # handle url
+        for paper in kw_list:
+            if paper["source"] == "aminer":
+                if "doi" in paper:
+                    if paper["doi"] != "":
+                        paper["url"] = "http://dx.doi.org/" + paper["doi"]
+                    del paper["doi"]
+                elif "url" in paper:
+                    if isinstance(paper["url"], list):
+                        for url in paper.get("url"):
+                            if url.startswith("http"):
+                                paper["url"] = url
+                                break
+                            # no usable url, drop this key-value pairs
+                            del paper["url"]
+                    elif isinstance(paper["url"], str):
+                        if not paper["url"].startswith("http"):
+                            del paper["url"]
+            else:
+                if "ee" in paper:
+                    if isinstance(paper["ee"], list):
+                        for url in paper.get("ee"):
+                            if url.startswith("http"):
+                                paper["ee"] = url
+                                break
+                            # no usable url, drop this key-value pairs
+                            del paper["ee"]
+                    elif isinstance(paper["ee"], str):
+                        if not paper["ee"].startswith("http"):
+                            del paper["ee"]
+
         try:
             marked_papers = mark_lists.find({"_id": channel_id}).next()["marked"]
             for paper in kw_list:
@@ -647,5 +678,10 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
         }
 
 
-def generate_bibtex(channel_id):
-    pass
+def send_feedback_modal(trigger_id, value, channel_id):
+    return {
+            "trigger_id": trigger_id,
+            "view": render_template(
+                "feedback.json.jinja2", channel_id=channel_id
+            ),
+        }
