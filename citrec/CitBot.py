@@ -538,6 +538,8 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
                     if isinstance(paper["url"], list):
                         for url in paper.get("url"):
                             if url.startswith("http"):
+                                if url.startswith("https://dblp"):
+                                    continue
                                 paper["url"] = url
                                 break
                             # no usable url, drop this key-value pairs
