@@ -1,7 +1,9 @@
+from re import L
 import pymongo
 from bson.objectid import ObjectId
 from flask import render_template
 import datetime
+import json
 
 
 server_adress = "localhost:27017"
@@ -9,13 +11,16 @@ client = pymongo.MongoClient(server_adress)
 db_citbot = client["CitBot"]
 mark_lists = db_citbot["Lists"]
 lists_temp = db_citbot["Lists_temp"]
+suggestions = db_citbot["Suggestions"]
+feedbacks = db_citbot["Feedbacks"]
 results = db_citbot["Results"]
 db_citrec = client["CitRec"]
 aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 """These codes are for evaluation"""
 evaluation = db_citbot["Evaluation"]
-""""""""""""""""end"""""""""""""""""
+"""""" """""" """"end""" """""" """""" ""
+
 
 def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
     try:
@@ -66,8 +71,15 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
         for paper in rec_list[:5]:
             if paper["inList"] == True:
                 add2list += 1
-        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 1, "add2list": add2list, "context": context})
-        """"""""""""""""end"""""""""""""""""
+        evaluation.insert_one(
+            {
+                "_id": ObjectId(rec_list_id),
+                "max_page": 1,
+                "add2list": add2list,
+                "context": context,
+            }
+        )
+        """""" """""" """"end""" """""" """""" ""
         return {
             "blocks": render_template(
                 "rec_result.json.jinja2",
@@ -96,8 +108,15 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
         for paper in rec_list[:5]:
             if paper["inList"] == True:
                 add2list += 1
-        evaluation.insert_one({"_id": ObjectId(rec_list_id), "max_page": 1, "add2list": add2list, "context": context})
-        """"""""""""""""end"""""""""""""""""
+        evaluation.insert_one(
+            {
+                "_id": ObjectId(rec_list_id),
+                "max_page": 1,
+                "add2list": add2list,
+                "context": context,
+            }
+        )
+        """""" """""" """"end""" """""" """""" ""
         return {
             "blocks": render_template(
                 "rec_result.json.jinja2",
@@ -123,8 +142,11 @@ def flip_page_rec(value, time, PAGE_MAX):
             for paper in rec_list["papers"][(page * 5) : (page * 5 + 5)]:
                 if paper["inList"]:
                     add2list += 1
-            evaluation.update_one({"_id": ObjectId(rec_list_id)}, {"$set": {"max_page": page, "add2list": (log["add2list"] + add2list)}})
-        """"""""""""""""end"""""""""""""""""
+            evaluation.update_one(
+                {"_id": ObjectId(rec_list_id)},
+                {"$set": {"max_page": page, "add2list": (log["add2list"] + add2list)}},
+            )
+        """""" """""" """"end""" """""" """""" ""
         return {
             "blocks": render_template(
                 "rec_result.json.jinja2",
@@ -221,8 +243,10 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
         if rec_or_ref_or_kw == "rec":
             """These codes are for evaluation"""
             log = evaluation.find({"_id": ObjectId(ind)}).next()
-            evaluation.update_one({"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] + 1}})
-            """"""""""""""""end"""""""""""""""""
+            evaluation.update_one(
+                {"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] + 1}}
+            )
+            """""" """""" """"end""" """""" """""" ""
             return {
                 "blocks": render_template(
                     "rec_result.json.jinja2",
@@ -388,7 +412,7 @@ def del_paper_in_list(value, time, channel_id):
         marked_papers = mark_lists.find({"_id": channel_id}).next()["marked"]
     except StopIteration:
         return {
-            "text": "No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺" 
+            "text": "No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺"
         }
 
     try:
@@ -622,8 +646,10 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
         if rec_or_ref_or_kw == "rec":
             """These codes are for evaluation"""
             log = evaluation.find({"_id": ObjectId(ind)}).next()
-            evaluation.update_one({"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] - 1}})
-            """"""""""""""""end"""""""""""""""""
+            evaluation.update_one(
+                {"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] - 1}}
+            )
+            """""" """""" """"end""" """""" """""" ""
             return {
                 "blocks": render_template(
                     "rec_result.json.jinja2",
@@ -679,9 +705,51 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
 
 
 def send_feedback_modal(trigger_id, value, channel_id):
-    return {
+    rec_or_ref_or_kw_or_list, ind, page = tuple(value.split(","))
+    page = int(page)
+    try:
+        if rec_or_ref_or_kw_or_list in ["rec", "ref", "kw"]:
+            papers = results.find({"_id": ObjectId(ind)}).next()["papers"][
+                (page * 5) : (page * 5 + 5)
+            ]
+        elif rec_or_ref_or_kw_or_list == "list":
+            papers = lists_temp.find({"_id": ObjectId(ind)}).next()["papers"][
+                (page * 5) : (page * 5 + 5)
+            ]
+        return {
             "trigger_id": trigger_id,
             "view": render_template(
-                "feedback.json.jinja2", channel_id=channel_id
+                "feedback.json.jinja2", papers=papers, page=page, channel_id=channel_id
             ),
         }
+    except StopIteration:
+        return {
+            "text": "Sorry 🥺 This message is outdated, so I could not handle the feedback."
+        }
+
+
+def handle_feedback(value):
+    value = json.loads(value)
+    print(value)
+    value_dict = value["values"]
+    for _, v in value_dict.items():
+        for id_source, feedback_dict in v.items():
+            if feedback_dict["value"]:
+                if id_source == "others":
+                    suggestions.insert_one(
+                        {"_id": ObjectId(), "suggestion": feedback_dict["value"]}
+                    )
+                else:
+                    try:
+                        feedbacks.insert_one(
+                            {"_id": id_source, "feedback": [feedback_dict["value"]]}
+                        )
+                    except pymongo.errors.DuplicateKeyError:
+                        feedback_list = feedbacks.find({"_id": id_source}).next()[
+                            "feedback"
+                        ]
+                        feedback_list.append(feedback_dict["value"])
+                        feedbacks.update_one(
+                            {"_id": id_source}, {"$set": {"feedback": feedback_list}}
+                        )
+    return {"text": "Thanks for you feedback 🥰"}

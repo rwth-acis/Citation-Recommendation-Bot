@@ -176,7 +176,6 @@ class CitRec:
                     {
                         "title": 1,
                         "authors.name": 1,
-                        "venue.raw": 1,
                         "year": 1,
                         "doi": 1,
                         "url": 1,
@@ -234,7 +233,7 @@ class CitRec:
             ).next()
             dic["source"] = "aminer"
             rec_list_ref.append(dic)
-        
+
         for paper in rec_list_ref:
             if "doi" in paper:
                 if paper["doi"] != "":

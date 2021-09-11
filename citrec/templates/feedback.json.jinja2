@@ -1,0 +1,83 @@
+{
+	"type": "modal",
+    "private_metadata": "{\"channel\": {{channel_id}}}",
+	"callback_id": "feedback_submit",
+	"title": {
+		"type": "plain_text",
+		"text": "Feedback",
+		"emoji": true
+	},
+	"submit": {
+		"type": "plain_text",
+		"text": "Submit",
+		"emoji": true
+	},
+	"close": {
+		"type": "plain_text",
+		"text": "Cancel",
+		"emoji": true
+	},
+	"blocks": [
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "So happy that you want to send feedback to me!\nPlease write below about where the wrong information is.\n*If you do not want to fill the field, just keep it empty.* "
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{% for paper in papers %}
+		{% if paper.source == "aminer" %}
+		{
+			"type": "input",
+            "block_id": "paper{{loop.index}}",
+			"optional": true,
+			"element": {
+				"type": "plain_text_input",
+				"action_id": "{{paper._id}},{{paper.source}}"
+			},
+			"label": {
+				"type": "plain_text",
+				"text": "{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}",
+				"emoji": true
+			}
+		},
+		{% else %}
+		{
+			"type": "input",
+            "block_id": "paper{{loop.index}}",
+			"optional": true,
+			"element": {
+				"type": "plain_text_input",
+				"action_id": "{{paper._id}},{{paper.source}}"
+			},
+			"label": {
+				"type": "plain_text",
+				"text": "{{page * 5 + loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author|replace("\"", "\\\"")}}, et al. {% else %}{{paper.author[0]|replace("\"", "\\\"")}}, et al. {%endif%}{%endif%}\"{{paper.title|replace("\"", "\\\"")}}\"{% if paper.year %} ({{paper.year}}){% endif %}\n{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}{% else %}{{paper.ee[0]}}{% endif %}{% endif %}",
+				"emoji": true
+			}
+		},
+		{% endif %}
+		{% endfor %}
+        {
+			"type": "divider"
+		},
+		{
+			"type": "input",
+            "block_id": "others",
+			"optional": true,
+			"element": {
+				"type": "plain_text_input",
+				"multiline": true,
+				"action_id": "others"
+			},
+			"label": {
+				"type": "plain_text",
+				"text": "Other suggestions or something, please write it in here.",
+				"emoji": true
+			}
+		},
+	]
+}

@@ -114,7 +114,45 @@
 				"emoji": true
 			},
 			"value": "{{list_id}}",
-			"action_id": "delall"
+			"action_id": "delall",
+			"confirm": {
+				"title": {
+					"type": "plain_text",
+					"text": "Warning"
+				},
+				"text": {
+					"type": "mrkdwn",
+					"text": "This operation is irreversible!!!\nAre you sure you want to delete all the papers in your marking list?"
+				},
+				"confirm": {
+					"type": "plain_text",
+					"text": "Do it"
+				},
+				"deny": {
+					"type": "plain_text",
+					"text": "Stop, I've changed my mind!"
+				}
+			},
+		}
+	},
+	{
+		"type": "divider"
+	},
+	{
+		"type": "section",
+		"text": {
+			"type": "mrkdwn",
+			"text": "If you found some papers are with wrong information, I am glad to know and correct them 💪"
+		},
+		"accessory": {
+			"type": "button",
+			"text": {
+				"type": "plain_text",
+				"text": "Send feedback",
+				"emoji": true
+			},
+			"value": "list,{{list_id}},{{page}}",
+			"action_id": "feedback"
 		}
 	}
 ]

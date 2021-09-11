@@ -1,7 +1,8 @@
 from flask import Flask, render_template
 import pymongo
+import json
 
-from CitRec import CitRec
+# from CitRec import CitRec
 import CitBot
 
 
@@ -22,24 +23,24 @@ aminer = db_citrec["AMiner"]
 dblp = db_citrec["DBLP"]
 
 
-@app.route("/rec/<payload>")
-def rec(payload):
-    payload = eval(payload)
-    citrec = CitRec()
-    rec_list, ref_list = citrec(context=payload["context"], k=K)
-    return CitBot.generate_rec_result(
-        context=payload["context"],
-        rec_list=rec_list,
-        ref_list=ref_list,
-        channel_id=payload["channel"],
-        PAGE_MAX=PAGE_MAX,
-    )
+# @app.route("/rec/<payload>")
+# def rec(payload):
+#     payload = json.loads(payload)
+#     citrec = CitRec()
+#     rec_list, ref_list = citrec(context=payload["context"], k=K)
+#     return CitBot.generate_rec_result(
+#         context=payload["context"],
+#         rec_list=rec_list,
+#         ref_list=ref_list,
+#         channel_id=payload["channel"],
+#         PAGE_MAX=PAGE_MAX,
+#     )
 
 
 @app.route("/actions/<payload>")
 def actions(payload):
-    payload = eval(payload)
-    actionInfo = eval(payload["actionInfo"])
+    payload = json.loads(payload)
+    actionInfo = json.loads(payload["actionInfo"])
     print(payload)
 
     # when clicking previous page and next page in recommendation result list
@@ -95,14 +96,6 @@ def actions(payload):
         )
 
     elif actionInfo["actionId"] == "delall":
-        return {
-            "trigger_id": actionInfo["triggerId"],
-            "view": render_template(
-                "warning.json.jinja2", channel_id=payload["channel"]
-            ),
-        }
-
-    elif actionInfo["actionId"] == "warning":
         return CitBot.delete_all(channel_id=payload["channel"])
 
     elif actionInfo["actionId"] == "next_kw" or actionInfo["actionId"] == "previous_kw":
@@ -110,13 +103,20 @@ def actions(payload):
             value=actionInfo["value"], time=payload["time"], PAGE_MAX=PAGE_MAX
         )
 
+    elif actionInfo["actionId"] == "feedback_submit":
+        return CitBot.handle_feedback(value=actionInfo["value"])
+
     # TODO send bibtex doc
     elif actionInfo["actionId"] == "bibtex":
-        return CitBot.generate_bibtex(channel_id=payload["channel"])
+        pass
+        # return CitBot.generate_bibtex(trigger_id=actionInfo["triggerId"], channel_id=payload["channel"])
 
-    # TODO send feedback
     elif actionInfo["actionId"] == "feedback":
-        return {"text": "This feature is under development."}
+        return CitBot.send_feedback_modal(
+            trigger_id=actionInfo["triggerId"],
+            value=actionInfo["value"],
+            channel_id=payload["channel"],
+        )
 
     else:
         return {"text": "An error occurred 😖"}
@@ -124,7 +124,7 @@ def actions(payload):
 
 @app.route("/lists/<payload>")
 def lists(payload):
-    payload = eval(payload)
+    payload = json.loads(payload)
     channel_id = payload["channel"]
     list_id, marked_papers = CitBot.find_papers_in_list(channel_id)
     if (not list_id) or marked_papers == []:
@@ -145,7 +145,7 @@ def lists(payload):
 
 @app.route("/keywords/<payload>")
 def keywords(payload):
-    payload = eval(payload)
+    payload = json.loads(payload)
     print(payload)
     return CitBot.keywords_search(
         keywords=payload["keywords"],
