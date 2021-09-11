@@ -1,4 +1,3 @@
-from re import L
 import pymongo
 from bson.objectid import ObjectId
 from flask import render_template
@@ -137,14 +136,14 @@ def flip_page_rec(value, time, PAGE_MAX):
         rec_list = results.find({"_id": ObjectId(rec_list_id)}).next()
         """These codes are for evaluation"""
         log = evaluation.find({"_id": ObjectId(rec_list_id)}).next()
-        if log["max_page"] < page:
+        if log["max_page"] < (page + 1):
             add2list = 0
             for paper in rec_list["papers"][(page * 5) : (page * 5 + 5)]:
-                if paper["inList"]:
+                if paper["inList"] == True:
                     add2list += 1
             evaluation.update_one(
                 {"_id": ObjectId(rec_list_id)},
-                {"$set": {"max_page": page, "add2list": (log["add2list"] + add2list)}},
+                {"$set": {"max_page": page + 1, "add2list": (log["add2list"] + add2list)}},
             )
         """""" """""" """"end""" """""" """""" ""
         return {
