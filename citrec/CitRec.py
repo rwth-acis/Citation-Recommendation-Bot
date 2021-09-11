@@ -162,9 +162,8 @@ class CitRec:
                         "title": 1,
                         "author": 1,
                         "year": 1,
-                        "booktitle": 1,
-                        "journal": 1,
                         "ee": 1,
+                        "bib": 1,
                     },
                 ).next()
                 dic["rel_score"] = rel
@@ -179,6 +178,7 @@ class CitRec:
                         "year": 1,
                         "doi": 1,
                         "url": 1,
+                        "bib": 1,
                     },
                 ).next()
                 dic["rel_score"] = rel
@@ -190,8 +190,7 @@ class CitRec:
             if paper["source"] == "aminer":
                 if "doi" in paper:
                     if paper["doi"] != "":
-                        paper["url"] = "http://dx.doi.org/" + paper["doi"]
-                    del paper["doi"]
+                        paper["url"] = "https://doi.org/" + paper["doi"]
                 elif "url" in paper:
                     if isinstance(paper["url"], list):
                         for url in paper.get("url"):
@@ -231,6 +230,7 @@ class CitRec:
                     "venue.raw": 1,
                     "year": 1,
                     "url": 1,
+                    "bib": 1,
                 },
             ).next()
             dic["source"] = "aminer"
@@ -239,8 +239,7 @@ class CitRec:
         for paper in rec_list_ref:
             if "doi" in paper:
                 if paper["doi"] != "":
-                    paper["url"] = "http://dx.doi.org/" + paper["doi"]
-                del paper["doi"]
+                    paper["url"] = "https://doi.org/" + paper["doi"]
             elif "url" in paper:
                 if isinstance(paper["url"], list):
                     for url in paper.get("url"):

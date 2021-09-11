@@ -3,3 +3,7 @@ sbatch.sh
 database/
 citrec/.env
 citrec/.flaskenv
+# ignore all files in bib_cache/
+citrec/bib_cache/*
+# except for .gitkeep
+!.gitkee

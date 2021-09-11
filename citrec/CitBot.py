@@ -3,6 +3,10 @@ from bson.objectid import ObjectId
 from flask import render_template
 import datetime
 import json
+from bibtexparser.bwriter import BibTexWriter
+from bibtexparser.bibdatabase import BibDatabase
+import subprocess
+from threading import Thread
 
 
 server_adress = "localhost:27017"
@@ -10,6 +14,7 @@ client = pymongo.MongoClient(server_adress)
 db_citbot = client["CitBot"]
 mark_lists = db_citbot["Lists"]
 lists_temp = db_citbot["Lists_temp"]
+bibtex = db_citbot["Bibtex"]
 suggestions = db_citbot["Suggestions"]
 feedbacks = db_citbot["Feedbacks"]
 results = db_citbot["Results"]
@@ -19,6 +24,82 @@ dblp = db_citrec["DBLP"]
 """These codes are for evaluation"""
 evaluation = db_citbot["Evaluation"]
 """""" """""" """"end""" """""" """""" ""
+
+
+def generate_bibtex_one(paper, paper_id, paper_source):
+    bib_dict = {}
+    try:
+        bib_dict["title"] = paper["title"]
+    except KeyError:
+        pass
+    try:
+        bib_dict["year"] = str(paper["year"])
+    except KeyError:
+        pass
+    bib_dict["ENTRYTYPE"] = "artical"
+    bib_dict["author"] = paper.get("authors")
+    if not bib_dict["author"]:
+        bib_dict["author"] = paper.get("author")
+    if bib_dict["author"]:
+        if isinstance(bib_dict["author"], str):
+            bib_dict["ID"] = bib_dict["author"].split()[-1] + str(
+                eval(bib_dict["year"]) % 100
+            )
+        elif isinstance(bib_dict["author"], list):
+            bib_dict["author"] = bib_dict["author"][0]
+            if isinstance(bib_dict["author"], dict):
+                bib_dict["author"] = bib_dict["author"]["name"]
+            bib_dict["ID"] = bib_dict["author"].split()[-1] + str(
+                eval(bib_dict["year"]) % 100
+            )
+    else:
+        del bib_dict["author"]
+    bib_dict["doi"] = paper.get("doi")
+    if not bib_dict["doi"]:
+        url = paper.get("url")
+        if isinstance(url, str):
+            if url.startswith("https://doi.org/"):
+                bib_dict["doi"] = url.replace("https://doi.org/", "")
+            elif url.startswith("http://doi.org/"):
+                bib_dict["doi"] = url.replace("http://doi.org/", "")
+            elif url.startswith("http://dx.doi.org/"):
+                bib_dict["doi"] = url.replace("http://dx.doi.org/", "")
+            elif url.startswith("https://dx.doi.org/"):
+                bib_dict["doi"] = url.replace("https://dx.doi.org/", "")
+        elif isinstance(url, list):
+            for u in url:
+                if u.startswith("https://doi.org/"):
+                    bib_dict["doi"] = u.replace("https://doi.org/", "")
+                elif u.startswith("http://doi.org/"):
+                    bib_dict["doi"] = u.replace("http://doi.org/", "")
+                elif u.startswith("http://dx.doi.org/"):
+                    bib_dict["doi"] = u.replace("http://dx.doi.org/", "")
+                elif u.startswith("http://dx.doi.org/"):
+                    bib_dict["doi"] = u.replace("http://dx.doi.org/", "")
+
+    if not bib_dict["doi"]:
+        url = paper.get("ee")
+        if isinstance(url, str):
+            if url.startswith("https://doi.org/"):
+                bib_dict["doi"] = url.replace("https://doi.org/", "")
+        elif isinstance(url, list):
+            for u in url:
+                if u.startswith("https://doi.org/"):
+                    bib_dict["doi"] = u.replace("https://doi.org/", "")
+    if not bib_dict["doi"]:
+        del bib_dict["doi"]
+    bib_db = BibDatabase()
+    bib_db.entries = [bib_dict]
+    writer = BibTexWriter()
+    file_name = str(ObjectId())
+    file_parth = "./bib_cache/" + file_name + ".bib"
+    with open(file_parth, "w") as bibfile:
+        bibfile.write(writer.write(bib_db))
+    subprocess.call(["betterbib", "-i", "-t", file_parth])
+    subprocess.call(["sed", "-i", "1,2d", file_parth])
+    bib_string = open(file_parth).read()
+    bibtex.insert_one({"_id": paper_id + "," + paper_source, "bib": bib_string})
+    subprocess.call(["rm", file_parth])
 
 
 def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
@@ -143,7 +224,12 @@ def flip_page_rec(value, time, PAGE_MAX):
                     add2list += 1
             evaluation.update_one(
                 {"_id": ObjectId(rec_list_id)},
-                {"$set": {"max_page": page + 1, "add2list": (log["add2list"] + add2list)}},
+                {
+                    "$set": {
+                        "max_page": page + 1,
+                        "add2list": (log["add2list"] + add2list),
+                    }
+                },
             )
         """""" """""" """"end""" """""" """""" ""
         return {
@@ -209,6 +295,8 @@ def flip_page_ref(value, time):
 
 def add_to_list(value, time, channel_id, PAGE_MAX):
     rec_or_ref_or_kw, ind, page, paper_id, paper_source = tuple(value.split(","))
+
+    # add paper to the marking list
     page = int(page)
     mark = [paper_id + "," + paper_source]
     try:
@@ -235,6 +323,12 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
         for paper in (rec_or_ref_or_kw_result["papers"])[(page * 5) :]:
             if paper["_id"] == paper_id or paper["_id"] == ObjectId(paper_id):
                 paper["inList"] = True
+                # TODO add bibtex information
+                if bibtex.find({"_id": paper_id + "," + paper_source}).count() == 0:
+                    Thread(
+                        target=generate_bibtex_one, args=(paper, paper_id, paper_source)
+                    ).start()
+
         results.update_one(
             {"_id": ObjectId(ind)},
             {"$set": {"papers": rec_or_ref_or_kw_result["papers"]}},
@@ -316,9 +410,8 @@ def find_papers_in_list(channel_id):
                         "title": 1,
                         "author": 1,
                         "year": 1,
-                        "booktitle": 1,
-                        "journal": 1,
                         "ee": 1,
+                        "bib": 1,
                     },
                 ).next()
             except StopIteration:
@@ -328,9 +421,8 @@ def find_papers_in_list(channel_id):
                         "title": 1,
                         "author": 1,
                         "year": 1,
-                        "booktitle": 1,
-                        "journal": 1,
                         "ee": 1,
+                        "bib": 1,
                     },
                 ).next()
             dic["source"] = "dblp"
@@ -342,9 +434,10 @@ def find_papers_in_list(channel_id):
                     {
                         "title": 1,
                         "authors.name": 1,
-                        "venue.raw": 1,
                         "year": 1,
+                        "doi": 1,
                         "url": 1,
+                        "bib": 1,
                     },
                 ).next()
             except StopIteration:
@@ -353,9 +446,10 @@ def find_papers_in_list(channel_id):
                     {
                         "title": 1,
                         "authors.name": 1,
-                        "venue.raw": 1,
                         "year": 1,
+                        "doi": 1,
                         "url": 1,
+                        "bib": 1,
                     },
                 ).next()
             dic["source"] = "aminer"
@@ -471,6 +565,7 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
                 "year": 1,
                 "doi": 1,
                 "url": 1,
+                "bib": 1,
                 "source": "aminer",
                 "score": {"$meta": "textScore"},
             },
@@ -485,9 +580,8 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
                 "title": 1,
                 "author": 1,
                 "year": 1,
-                "booktitle": 1,
-                "journal": 1,
                 "ee": 1,
+                "bib": 1,
                 "source": "dblp",
                 "score": {"$meta": "textScore"},
             },
@@ -531,8 +625,7 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
             if paper["source"] == "aminer":
                 if "doi" in paper:
                     if paper["doi"] != "":
-                        paper["url"] = "http://dx.doi.org/" + paper["doi"]
-                    del paper["doi"]
+                        paper["url"] = "https://doi.org/" + paper["doi"]
                 elif "url" in paper:
                     if isinstance(paper["url"], list):
                         for url in paper.get("url"):
