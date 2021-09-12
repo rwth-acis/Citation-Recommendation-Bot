@@ -108,8 +108,7 @@ def actions(payload):
 
     # TODO send bibtex doc
     elif actionInfo["actionId"] == "bibtex":
-        pass
-        # return CitBot.generate_bibtex(trigger_id=actionInfo["triggerId"], channel_id=payload["channel"])
+        return CitBot.generate_bibtex_list(value=actionInfo["value"])
 
     elif actionInfo["actionId"] == "feedback":
         return CitBot.send_feedback_modal(
