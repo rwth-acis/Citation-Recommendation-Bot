@@ -2,7 +2,7 @@ from flask import Flask, render_template
 import pymongo
 import json
 
-from CitRec import CitRec
+# from CitRec import CitRec
 import CitBot
 
 
@@ -13,28 +13,28 @@ else:
     PAGE_MAX = K // 5
 
 app = Flask(__name__)
-server_adress = "localhost:27017"
-client = pymongo.MongoClient(server_adress)
-db_citbot = client["CitBot"]
-mark_lists = db_citbot["Lists"]
-results = db_citbot["Results"]
-db_citrec = client["CitRec"]
-aminer = db_citrec["AMiner"]
-dblp = db_citrec["DBLP"]
+SERVER_ADDRESS = "localhost:27017"
+CLIENT = pymongo.MongoClient(SERVER_ADDRESS)
+DB_CITBOT = CLIENT["CitBot"]
+MARK_LIST = DB_CITBOT["Lists"]
+RESULTS = DB_CITBOT["Results"]
+DB_CITREC = CLIENT["CitRec"]
+AMINER = DB_CITREC["AMiner"]
+DBLP = DB_CITREC["DBLP"]
 
 
-@app.route("/rec/<payload>")
-def rec(payload):
-    payload = json.loads(payload)
-    citrec = CitRec()
-    rec_list, ref_list = citrec(context=payload["context"], k=K)
-    return CitBot.generate_rec_result(
-        context=payload["context"],
-        rec_list=rec_list,
-        ref_list=ref_list,
-        channel_id=payload["channel"],
-        PAGE_MAX=PAGE_MAX,
-    )
+# @app.route("/rec/<payload>")
+# def rec(payload):
+#     payload = json.loads(payload)
+#     citrec = CitRec()
+#     rec_list, ref_list = citrec(context=payload["context"], k=K)
+#     return CitBot.generate_rec_result(
+#         context=payload["context"],
+#         rec_list=rec_list,
+#         ref_list=ref_list,
+#         channel_id=payload["channel"],
+#         PAGE_MAX=PAGE_MAX,
+#     )
 
 
 @app.route("/actions/<payload>")
