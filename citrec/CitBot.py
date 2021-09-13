@@ -40,7 +40,7 @@ def generate_bibtex_list(value):
     except StopIteration:
         return {"text": "This message is outdated, please send me \"!list\" again 🥺"}
     
-    error = []
+    error_papers = []
     res_string = ""
     try:
         for paper in marked_papers:
@@ -51,66 +51,19 @@ def generate_bibtex_list(value):
                 bib_string = BIBTEX.find({"_id": id_source}).next()["bib"]
                 res_string = res_string + ("\n" + bib_string + "\n")
             except StopIteration:
-                if paper_source == "aminer":
-                    try:
-                        paper = AMINER.find(
-                            {"_id": paper_id},
-                            {
-                                "title": 1,
-                                "authors.name": 1,
-                                "year": 1,
-                                "doi": 1,
-                                "url": 1,
-                                "bib": 1,
-                            },
-                        ).next()
-                    except StopIteration:
-                        paper = AMINER.find(
-                            {"_id": ObjectId(paper_id)},
-                            {
-                                "title": 1,
-                                "authors.name": 1,
-                                "year": 1,
-                                "doi": 1,
-                                "url": 1,
-                                "bib": 1,
-                            },
-                        ).next()
-                else: 
-                    try:
-                        paper = DBLP.find(
-                            {"_id": ObjectId(paper_id)},
-                            {
-                                "title": 1,
-                                "author": 1,
-                                "year": 1,
-                                "ee": 1,
-                                "bib": 1,
-                            },
-                        ).next()
-                    except StopIteration:
-                        paper = DBLP.find(
-                            {"_id": paper_id},
-                            {
-                                "title": 1,
-                                "author": 1,
-                                "year": 1,
-                                "ee": 1,
-                                "bib": 1,
-                            },
-                        ).next()
                 generate_bibtex_one(paper, paper_id, paper_source)
                 try:
                     bib_string = BIBTEX.find({"_id": id_source}).next()["bib"]
                     res_string = res_string + ("\n" + bib_string + "\n")
                 except StopIteration:
-                    error.append(paper.get("title") or "")
+                    error_papers.append(paper.get("title") or "")
         res_bites = bytes(res_string,'utf-8')
         res_b64 = base64.b64encode(res_bites).decode('ascii')
-        if error:
+        if error_papers:
+            print(error_papers)
             error_str = "Sorry, I can't find the bibtex informations for these papers:\n"
-            for e in error:
-                error_str + e + '\n'
+            for e in error_papers:
+                error_str = error_str + e + '\n'
             error_str + "you might need to add them manually 😖"
             return {"fileBody": str(res_b64), "fileName": "bibliography", "fileType": "bib", "text": error_str}
         else: 
@@ -122,6 +75,24 @@ def generate_bibtex_list(value):
 
 def generate_bibtex_one(paper, paper_id, paper_source):
     title = paper.get("title") or ''
+    # print(f"Finding bibtex of \"{title}\"...")
+    year = str(paper.get("year"))
+    key_id = None
+    author = paper.get("authors")
+    if not author:
+        author = paper.get("author") or ''
+    if author and year:
+        if isinstance(author, str):
+            key_id = author.split()[-1] + '_' + str(
+                eval(year) % 100
+            )
+        elif isinstance(author, list):
+            author = author[0]
+            if isinstance(author, dict):
+                author = author["name"]
+            key_id = author.split()[-1] + '_' + str(
+                eval(year) % 100
+            )
     
     # Using doi api
     doi = paper.get("doi")
@@ -162,29 +133,17 @@ def generate_bibtex_one(paper, paper_id, paper_source):
         try:
             with urllib.request.urlopen(req) as f:
                 bib_string = f.read().decode()
-            BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": bib_string})
-            print(f"Bibtex of \"{title}\" have been found using doi.")
+            updated_entries = pybtex.database.parse_string(bib_string, bib_format="bibtex")
+            assert len(updated_entries.entries) == 1
+            for new_key in updated_entries.entries:
+                updated_entry = updated_entries.entries[new_key]
+            updated_entry.key = key_id
+            BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": updated_entry.to_string("bibtex")})
+            # print(f"Bibtex of \"{title}\" have been found using doi.")
             return
         except:
             pass
 
-    year = str(paper.get("year"))
-    key_id = None
-    author = paper.get("authors")
-    if not author:
-        author = paper.get("author") or ''
-    if author and year:
-        if isinstance(author, str):
-            key_id = author.split()[-1] + '_' + str(
-                eval(year) % 100
-            )
-        elif isinstance(author, list):
-            author = author[0]
-            if isinstance(author, dict):
-                author = author["name"]
-            key_id = author.split()[-1] + '_' + str(
-                eval(year) % 100
-            )
     # Using DBLP api (cannot find bibtex using doi)
     query = f'{title} {author}'
     try:
@@ -211,7 +170,7 @@ def generate_bibtex_one(paper, paper_id, paper_source):
             updated_entry.fields['journal'] = f'arXiv preprint arXiv:{updated_entry.fields["volume"][4:]}'
         updated_entry.key = key_id
         BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": updated_entry.to_string("bibtex")})
-        print(f"Bibtex of \"{title}\" have been found using dblp.")
+        # print(f"Bibtex of \"{title}\" have been found using dblp.")
         return
     except:
         pass
@@ -229,14 +188,16 @@ def generate_bibtex_one(paper, paper_id, paper_source):
     try:
         with open(file_parth, "w") as bibfile:
             bibfile.write(writer.write(bib_db))
-        subprocess.call(["betterbib", "-i", "-t", file_parth])
-        subprocess.call(["sed", "-i", "1,3d", file_parth])
-        bib_string = open(file_parth).read().lstrip().rstrip()
-        BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": bib_string})
-        print(f"Bibtex of \"{title}\" have been found using betterbib (crossref).")
+        if "Found: 1" in subprocess.check_output(["betterbib", "-i", "-t", file_parth]).decode():
+            subprocess.call(["sed", "-i", "1,3d", file_parth])
+            bib_string = open(file_parth).read().lstrip().rstrip()
+            BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": bib_string})
+            # print(f"Bibtex of \"{title}\" have been found using betterbib (crossref).")
+        # else: 
+            # print(f"Bibtex of \"{title}\" could not be found.")
         subprocess.call(["rm", file_parth])
-    except: 
-        print(f"Bibtex of \"{title}\" could not be found.")
+    except:
+        # print(f"Bibtex of \"{title}\" could not be found or already exist.")
         subprocess.call(["rm", file_parth])
 
 
