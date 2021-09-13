@@ -161,7 +161,6 @@ def compare_title(citavi_sqlite, aminer_mongodb, citavi_mongodb, batch_size=1000
 
 
 class CosineSimilarity(torch.nn.Module):
-    
     def __init__(self):
         super().__init__()
 
@@ -175,14 +174,22 @@ class CosineSimilarity(torch.nn.Module):
         final = x.mul(1 / x_frobenins)
         return final
 
-def add_relevant_papers(aminer_year_mongodb, citavi_spector_mongodb, spector_year_mongodb, citavi_mongodb, threshold=0.8, batch_size=100000):
+
+def add_relevant_papers(
+    aminer_year_mongodb,
+    citavi_spector_mongodb,
+    spector_year_mongodb,
+    citavi_mongodb,
+    threshold=0.8,
+    batch_size=100000,
+):
     """If a paper in the aminer_year_mongodb" is similar to a paper in the "citavi_mongodb" (cosine similariy >= threshold), it will be added into "citavi_mongodb", and its embedding will be added to "citavi_spector_mongodb".
 
     Args:
         aminer_year_mongodb (MongoDB collection): Collection stores the papers publised after the "year" in AMiner dataset.
-        citavi_spector_mongodb (MongoDB collection: Colleciton contains embeddings of Citavi datset and of its relevant papers. 
+        citavi_spector_mongodb (MongoDB collection: Colleciton contains embeddings of Citavi datset and of its relevant papers.
         spector_year_mongodb (MongoDB collection): Collection stores embeddings of the papers publised after the "year" in AMiner dataset.
-        citavi_mongodb (MongoDB collection): Colleciton contains Citavi datset and its relevant papers. 
+        citavi_mongodb (MongoDB collection): Colleciton contains Citavi datset and its relevant papers.
         threshold (float, optional): [description]. Defaults to 0.8.
         batch_size (int, optional): Compare with "batch_size" papers at a time. Defaults to 100000.
     """
@@ -199,7 +206,7 @@ def add_relevant_papers(aminer_year_mongodb, citavi_spector_mongodb, spector_yea
     # cos = CosineSimilarity().to("cuda" if torch.cuda.is_available() else "cpu")
     # cos = torch.nn.DataParallel(cos)
 
-    total=spector_year_mongodb.find().count()
+    total = spector_year_mongodb.find().count()
 
     pbar = tqdm.tqdm(total=total)
     pbar.set_description("Adding relevant papers")
@@ -209,7 +216,7 @@ def add_relevant_papers(aminer_year_mongodb, citavi_spector_mongodb, spector_yea
     add_papers = []
     add_ids = []
     for i in range(0, total, batch_size):
-        for d_x1 in spector_year_mongodb.find()[i: (i + batch_size)]:
+        for d_x1 in spector_year_mongodb.find()[i : (i + batch_size)]:
             x1.append(d_x1["embedding"])
             id_x1.append(d_x1["_id"])
         x1 = torch.Tensor(x1)
@@ -232,14 +239,16 @@ def add_relevant_papers(aminer_year_mongodb, citavi_spector_mongodb, spector_yea
         pbar.update(batch_size)
         x1 = []
         id_x1 = []
-    
+
     pbar.close()
-    
+
     citavi_ids = citavi_mongodb.find({}, {"_id": 1})
     for d in citavi_ids:
         citavi_id = d["_id"]
         try:
-            citavi_spector_mongodb.insert_one(spector_year_mongodb.find({"_id": citavi_id}).next())
+            citavi_spector_mongodb.insert_one(
+                spector_year_mongodb.find({"_id": citavi_id}).next()
+            )
         except pymongo.errors.DuplicateKeyError:
             pass
         except StopIteration:
@@ -263,4 +272,6 @@ if __name__ == "__main__":
 
     compare_doi(citavi_sqlite, aminer_mongodb, citavi_mongodb)
     compare_title(citavi_sqlite, aminer_mongodb, citavi_mongodb)
-    add_relevant_papers(aminer_mongodb, citavi_spector_mongodb, spector_year_mongodb, citavi_mongodb)
+    add_relevant_papers(
+        aminer_mongodb, citavi_spector_mongodb, spector_year_mongodb, citavi_mongodb
+    )

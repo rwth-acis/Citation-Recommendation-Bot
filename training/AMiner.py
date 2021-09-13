@@ -9,7 +9,9 @@ def filter_year_aminer(aminer_mongodb, aminer_year_mongodb, year_AMiner):
         aminer_year_mongodb (MongoDB collection): The collection where the filtered data should be stored.
         year_AMiner (int): The year in which AMiner dataset has been published.
     """
-    docs = aminer_mongodb.find({"year": {"$gte": (year_AMiner - 3)}}, {"_id": 1, "title": 1, "abstract": 1})
+    docs = aminer_mongodb.find(
+        {"year": {"$gte": (year_AMiner - 3)}}, {"_id": 1, "title": 1, "abstract": 1}
+    )
     for d in docs:
         aminer_year_mongodb.insert_one(d)
 

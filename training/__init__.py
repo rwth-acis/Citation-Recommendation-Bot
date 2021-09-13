@@ -9,10 +9,12 @@ from Citavi import compare_doi, compare_title, add_relevant_papers
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--year_AMiner', type=int, help='in which year the AMiner dataset was published')
-    parser.add_argument('--dblp_dtd', help='path to the dtd file of dblp dataset')
-    parser.add_argument('--dblp_xml', help='path to the xml file of dblp dataset')
-    parser.add_argument('--citavi_sqlite', help='path to the Citavi sqlite')
+    parser.add_argument(
+        "--year_AMiner", type=int, help="in which year the AMiner dataset was published"
+    )
+    parser.add_argument("--dblp_dtd", help="path to the dtd file of dblp dataset")
+    parser.add_argument("--dblp_xml", help="path to the xml file of dblp dataset")
+    parser.add_argument("--citavi_sqlite", help="path to the Citavi sqlite")
 
     args = parser.parse_args()
 
@@ -40,7 +42,9 @@ if __name__ == "__main__":
     dblp_spector_mongodb = mongodb["DBLP_Spector"]
 
     # 1. Filter items in DBLP dataset according to the year, and store them in collection DBLP
-    print("Filtering items in DBLP dataset according to the year, and storing them in collection DBLP...")
+    print(
+        "Filtering items in DBLP dataset according to the year, and storing them in collection DBLP..."
+    )
     filter_year_dblp2json(
         path_dtd=dblp_dtd,
         path_xml=dblp_xml,
@@ -55,7 +59,9 @@ if __name__ == "__main__":
         batch_size=16,
     )
     # 3. Filter items in AMiner dataset according to the year, and store them in collection aminer_year
-    print("Filtering items in AMiner dataset according to the year, and storing them in collection aminer_year...")
+    print(
+        "Filtering items in AMiner dataset according to the year, and storing them in collection aminer_year..."
+    )
     filter_year_aminer(
         aminer_mongodb=aminer_mongodb,
         aminer_year_mongodb=aminer_year_mongodb,
@@ -69,7 +75,9 @@ if __name__ == "__main__":
         batch_size=16,
     )
     # 5. Compare Citavi dataset and AMiner dataset, store the intersection to citavi_mongodb
-    print("Comparing Citavi dataset and AMiner dataset, storing the intersection to citavi_mongodb...")
+    print(
+        "Comparing Citavi dataset and AMiner dataset, storing the intersection to citavi_mongodb..."
+    )
     compare_doi(
         citavi_sqlite=citavi_sqlite,
         aminer_mongodb=aminer_mongodb,
@@ -88,7 +96,9 @@ if __name__ == "__main__":
         batch_size=16,
     )
     # 7. Add relevant papers to citavi, add the corresponding embeddings to citavi_spector_mongodb
-    print("Adding relevant papers to citavi, adding the corresponding embeddings to citavi_spector_mongodb...")
+    print(
+        "Adding relevant papers to citavi, adding the corresponding embeddings to citavi_spector_mongodb..."
+    )
     add_relevant_papers(
         aminer_year_mongodb=aminer_mongodb,
         citavi_spector_mongodb=citavi_spector_mongodb,

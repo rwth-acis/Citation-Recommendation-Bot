@@ -72,8 +72,9 @@ class Model:
         output = self.model(**input_ids)
         return output.last_hidden_state[:, 0, :]  # cls token
 
+
 def generate_embeddings(source_collection, target_collection, batch_size=16):
-    """Generate embeddings for all papers in the "source_collection" based on title and abstract, and store the embeddings in the "target_collection". 
+    """Generate embeddings for all papers in the "source_collection" based on title and abstract, and store the embeddings in the "target_collection".
 
     Args:
         source_collection (MongoDB collection): Collection stores papers' titles and abstracts.
@@ -87,7 +88,9 @@ def generate_embeddings(source_collection, target_collection, batch_size=16):
     )
     model = Model()
     for batch, batch_ids in tqdm(
-        dataset.batches(), total=len(dataset) // batch_size + 1, desc="Generating embeddings"
+        dataset.batches(),
+        total=len(dataset) // batch_size + 1,
+        desc="Generating embeddings",
     ):
         embeddings = model(batch).detach().cpu().numpy().tolist()
         for i, embedding in enumerate(embeddings):

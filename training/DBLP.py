@@ -30,7 +30,7 @@ def filter_year_dblp2json(path_dtd, path_xml, year_AMiner, dblp_mongodb):
                     dic["type"] = node.tag
                     for element in node.iterchildren():
                         key = element.tag
-                        value = ''.join(element.itertext())
+                        value = "".join(element.itertext())
                         if key in dic:
                             if type(dic[key]) is list:
                                 dic[key].append(value)

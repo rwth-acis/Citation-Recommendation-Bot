@@ -35,19 +35,20 @@ DBLP = DB_CITREC["DBLP"]
 EVALUATION = DB_CITBOT["Evaluation"]
 """""" """""" """"end""" """""" """""" ""
 
+
 def generate_bibtex_list(value):
     try:
         marked_papers = LIST_TEMP.find({"_id": ObjectId(value)}).next()["papers"]
     except StopIteration:
-        return {"text": "This message is outdated, please send me \"!list\" again 🥺"}
-    
+        return {"text": 'This message is outdated, please send me "!list" again 🥺'}
+
     error_papers = []
     res_string = ""
     try:
         for paper in marked_papers:
             paper_id = str(paper["_id"])
             paper_source = paper["source"]
-            id_source = paper_id + ',' + paper_source
+            id_source = paper_id + "," + paper_source
             try:
                 bib_string = BIBTEX.find({"_id": id_source}).next()["bib"]
                 res_string = res_string + ("\n" + bib_string + "\n")
@@ -58,43 +59,50 @@ def generate_bibtex_list(value):
                     res_string = res_string + ("\n" + bib_string + "\n")
                 except StopIteration:
                     error_papers.append(paper.get("title") or "")
-        res_bites = bytes(res_string,'utf-8')
-        res_b64 = base64.b64encode(res_bites).decode('ascii')
+        res_bites = bytes(res_string, "utf-8")
+        res_b64 = base64.b64encode(res_bites).decode("ascii")
         if error_papers:
             print(error_papers)
-            error_str = "Sorry, I can't find the bibtex informations for these papers:\n"
+            error_str = (
+                "Sorry, I can't find the bibtex informations for these papers:\n"
+            )
             for e in error_papers:
-                error_str = error_str + e + '\n'
+                error_str = error_str + e + "\n"
             error_str + "you might need to add them manually 😖"
-            return {"fileBody": str(res_b64), "fileName": "bibliography", "fileType": "bib", "text": error_str}
-        else: 
-            return {"fileBody": str(res_b64), "fileName": "bibliography", "fileType": "bib"}
+            return {
+                "fileBody": str(res_b64),
+                "fileName": "bibliography",
+                "fileType": "bib",
+                "text": error_str,
+            }
+        else:
+            return {
+                "fileBody": str(res_b64),
+                "fileName": "bibliography",
+                "fileType": "bib",
+            }
     except Exception as e:
         print(e)
         return {"text": "An error occurred 😖"}
 
 
 def generate_bibtex_one(paper, paper_id, paper_source):
-    title = paper.get("title") or ''
+    title = paper.get("title") or ""
     # print(f"Finding bibtex of \"{title}\"...")
     year = str(paper.get("year"))
     key_id = None
     author = paper.get("authors")
     if not author:
-        author = paper.get("author") or ''
+        author = paper.get("author") or ""
     if author and year:
         if isinstance(author, str):
-            key_id = unidecode(author.split()[-1] + '_' + str(
-                eval(year) % 100
-            ))
+            key_id = unidecode(author.split()[-1] + "_" + str(eval(year) % 100))
         elif isinstance(author, list):
             author = author[0]
             if isinstance(author, dict):
                 author = author["name"]
-            key_id = unidecode(author.split()[-1] + '_' + str(
-                eval(year) % 100)
-            )
-    
+            key_id = unidecode(author.split()[-1] + "_" + str(eval(year) % 100))
+
     # Using doi api
     doi = paper.get("doi")
     if not doi:
@@ -127,31 +135,40 @@ def generate_bibtex_one(paper, paper_id, paper_source):
             for u in url:
                 if u.startswith("https://doi.org/"):
                     doi = u.replace("https://doi.org/", "")
-    if doi: 
-        url = 'http://dx.doi.org/' + doi
+    if doi:
+        url = "http://dx.doi.org/" + doi
         req = urllib.request.Request(url)
-        req.add_header('Accept', 'application/x-bibtex')
+        req.add_header("Accept", "application/x-bibtex")
         try:
             with urllib.request.urlopen(req) as f:
                 bib_string = f.read().decode()
-            updated_entries = pybtex.database.parse_string(bib_string, bib_format="bibtex")
+            updated_entries = pybtex.database.parse_string(
+                bib_string, bib_format="bibtex"
+            )
             assert len(updated_entries.entries) == 1
             for new_key in updated_entries.entries:
                 updated_entry = updated_entries.entries[new_key]
             updated_entry.key = key_id
-            BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": updated_entry.to_string("bibtex")})
+            BIBTEX.insert_one(
+                {
+                    "_id": paper_id + "," + paper_source,
+                    "bib": updated_entry.to_string("bibtex"),
+                }
+            )
             # print(f"Bibtex of \"{title}\" have been found using doi.")
             return
         except:
             pass
 
     # Using DBLP api (cannot find bibtex using doi)
-    query = f'{title} {author}'
+    query = f"{title} {author}"
     try:
-        search_results = bibtex_dblp.dblp_api.search_publication(query, max_search_results=2)
+        search_results = bibtex_dblp.dblp_api.search_publication(
+            query, max_search_results=2
+        )
         assert search_results.total_matches != 0
         pubs = [result.publication for result in search_results.results]
-        is_arxiv = [pub.venue == 'CoRR' for pub in pubs]
+        is_arxiv = [pub.venue == "CoRR" for pub in pubs]
         if len(is_arxiv) == 1:
             # only one match, no other choice
             pub = pubs[0]
@@ -161,16 +178,25 @@ def generate_bibtex_one(paper, paper_id, paper_source):
         else:
             # two pubs are non arxiv, use the first one as the first one matches more info
             pub = pubs[0]
-        bib_bytes = requests.get(f'{pub.url}.bib')
-        updated_entries = pybtex.database.parse_bytes(bib_bytes.content, bib_format="bibtex")
+        bib_bytes = requests.get(f"{pub.url}.bib")
+        updated_entries = pybtex.database.parse_bytes(
+            bib_bytes.content, bib_format="bibtex"
+        )
         assert len(updated_entries.entries) == 1
         for new_key in updated_entries.entries:
             updated_entry = updated_entries.entries[new_key]
-        if pub.venue == 'CoRR':
+        if pub.venue == "CoRR":
             # hard-coding for arxiv publications
-            updated_entry.fields['journal'] = f'arXiv preprint arXiv:{updated_entry.fields["volume"][4:]}'
+            updated_entry.fields[
+                "journal"
+            ] = f'arXiv preprint arXiv:{updated_entry.fields["volume"][4:]}'
         updated_entry.key = key_id
-        BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": updated_entry.to_string("bibtex")})
+        BIBTEX.insert_one(
+            {
+                "_id": paper_id + "," + paper_source,
+                "bib": updated_entry.to_string("bibtex"),
+            }
+        )
         # print(f"Bibtex of \"{title}\" have been found using dblp.")
         return
     except:
@@ -179,23 +205,41 @@ def generate_bibtex_one(paper, paper_id, paper_source):
     # using betterbib package (crossref api)
     bib_db = BibDatabase()
     if doi:
-        bib_db.entries = [{"ENTRYTYPE": "artical", "title": title, "author": author, "doi": doi, "ID": key_id if key_id else "default-value"}]
+        bib_db.entries = [
+            {
+                "ENTRYTYPE": "artical",
+                "title": title,
+                "author": author,
+                "doi": doi,
+                "ID": key_id if key_id else "default-value",
+            }
+        ]
     else:
-        bib_db.entries = [{"ENTRYTYPE": "artical", "title": title, "author": author, "ID": key_id if key_id else "default-value"}]
-    
+        bib_db.entries = [
+            {
+                "ENTRYTYPE": "artical",
+                "title": title,
+                "author": author,
+                "ID": key_id if key_id else "default-value",
+            }
+        ]
+
     writer = BibTexWriter()
     file_name = str(ObjectId())
     file_parth = "./bib_cache/" + file_name + ".bib"
     try:
         with open(file_parth, "w") as bibfile:
             bibfile.write(writer.write(bib_db))
-        if "Found: 1" in subprocess.check_output(["betterbib", "-i", "-t", file_parth]).decode():
+        if (
+            "Found: 1"
+            in subprocess.check_output(["betterbib", "-i", "-t", file_parth]).decode()
+        ):
             subprocess.call(["sed", "-i", "1,3d", file_parth])
             bib_string = open(file_parth).read().lstrip().rstrip()
             BIBTEX.insert_one({"_id": paper_id + "," + paper_source, "bib": bib_string})
             # print(f"Bibtex of \"{title}\" have been found using betterbib (crossref).")
-        # else: 
-            # print(f"Bibtex of \"{title}\" could not be found.")
+        # else:
+        # print(f"Bibtex of \"{title}\" could not be found.")
         subprocess.call(["rm", file_parth])
     except:
         # print(f"Bibtex of \"{title}\" could not be found or already exist.")
