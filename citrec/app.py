@@ -2,7 +2,7 @@ from flask import Flask, render_template
 import pymongo
 import json
 
-# from CitRec import CitRec
+from CitRec import CitRec
 import CitBot
 
 
@@ -23,18 +23,18 @@ AMINER = DB_CITREC["AMiner"]
 DBLP = DB_CITREC["DBLP"]
 
 
-# @app.route("/rec/<payload>")
-# def rec(payload):
-#     payload = json.loads(payload)
-#     citrec = CitRec()
-#     rec_list, ref_list = citrec(context=payload["context"], k=K)
-#     return CitBot.generate_rec_result(
-#         context=payload["context"],
-#         rec_list=rec_list,
-#         ref_list=ref_list,
-#         channel_id=payload["channel"],
-#         PAGE_MAX=PAGE_MAX,
-#     )
+@app.route("/rec/<payload>")
+def rec(payload):
+    payload = json.loads(payload)
+    citrec = CitRec()
+    rec_list, ref_list = citrec(context=payload["context"], k=K)
+    return CitBot.generate_rec_result(
+        context=payload["context"],
+        rec_list=rec_list,
+        ref_list=ref_list,
+        channel_id=payload["channel"],
+        PAGE_MAX=PAGE_MAX,
+    )
 
 
 @app.route("/actions/<payload>")
@@ -106,7 +106,6 @@ def actions(payload):
     elif actionInfo["actionId"] == "feedback_submit":
         return CitBot.handle_feedback(value=actionInfo["value"])
 
-    # TODO send bibtex doc
     elif actionInfo["actionId"] == "bibtex":
         return CitBot.generate_bibtex_list(value=actionInfo["value"])
 
@@ -116,6 +115,9 @@ def actions(payload):
             value=actionInfo["value"],
             channel_id=payload["channel"],
         )
+
+    elif actionInfo["actionId"] == "help":
+        return {"text": render_template("indications.json.jinja2")}
 
     else:
         return {"text": "An error occurred 😖"}

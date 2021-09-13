@@ -26,7 +26,7 @@ MARK_LISTS = DB_CITBOT["Lists"]
 LIST_TEMP = DB_CITBOT["Lists_temp"]
 BIBTEX = DB_CITBOT["Bibtex"]
 SUGGESTIONS = DB_CITBOT["Suggestions"]
-FEEDBACKS = DB_CITBOT["Feedbacks"]
+FEEDBACK = DB_CITBOT["Feedback"]
 RESULTS = DB_CITBOT["Results"]
 DB_CITREC = CLIENT["CitRec"]
 AMINER = DB_CITREC["AMiner"]
@@ -977,15 +977,15 @@ def handle_feedback(value):
                     )
                 else:
                     try:
-                        FEEDBACKS.insert_one(
+                        FEEDBACK.insert_one(
                             {"_id": id_source, "feedback": [feedback_dict["value"]]}
                         )
                     except pymongo.errors.DuplicateKeyError:
-                        feedback_list = FEEDBACKS.find({"_id": id_source}).next()[
+                        feedback_list = FEEDBACK.find({"_id": id_source}).next()[
                             "feedback"
                         ]
                         feedback_list.append(feedback_dict["value"])
-                        FEEDBACKS.update_one(
+                        FEEDBACK.update_one(
                             {"_id": id_source}, {"$set": {"feedback": feedback_list}}
                         )
     return {"text": "Thanks for you feedback 🥰"}
