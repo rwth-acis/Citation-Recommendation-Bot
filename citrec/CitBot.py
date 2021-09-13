@@ -62,12 +62,11 @@ def generate_bibtex_list(value):
         res_bites = bytes(res_string, "utf-8")
         res_b64 = base64.b64encode(res_bites).decode("ascii")
         if error_papers:
-            print(error_papers)
             error_str = (
                 "Sorry, I can't find the bibtex informations for these papers:\n"
             )
-            for e in error_papers:
-                error_str = error_str + e + "\n"
+            for i, e in enumerate(error_papers):
+                error_str = f"{error_str}{i + 1}. {e}\n"
             error_str + "you might need to add them manually 😖"
             return {
                 "fileBody": str(res_b64),
@@ -87,6 +86,7 @@ def generate_bibtex_list(value):
 
 
 def generate_bibtex_one(paper, paper_id, paper_source):
+    return
     title = paper.get("title") or ""
     # print(f"Finding bibtex of \"{title}\"...")
     year = str(paper.get("year"))
