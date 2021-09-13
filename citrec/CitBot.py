@@ -13,6 +13,7 @@ import numpy as np
 import requests
 import pybtex.database
 import base64
+from unidecode import unidecode
 
 # Only 3 threads for finding bibtex (avoid blocking)
 POOL = ThreadPoolExecutor(max_workers=3)
@@ -83,15 +84,15 @@ def generate_bibtex_one(paper, paper_id, paper_source):
         author = paper.get("author") or ''
     if author and year:
         if isinstance(author, str):
-            key_id = author.split()[-1] + '_' + str(
+            key_id = unidecode(author.split()[-1] + '_' + str(
                 eval(year) % 100
-            )
+            ))
         elif isinstance(author, list):
             author = author[0]
             if isinstance(author, dict):
                 author = author["name"]
-            key_id = author.split()[-1] + '_' + str(
-                eval(year) % 100
+            key_id = unidecode(author.split()[-1] + '_' + str(
+                eval(year) % 100)
             )
     
     # Using doi api
