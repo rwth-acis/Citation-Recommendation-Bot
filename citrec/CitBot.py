@@ -67,7 +67,7 @@ def generate_bibtex_list(value):
             )
             for i, e in enumerate(error_papers):
                 error_str = f"{error_str}{i + 1}. {e}\n"
-            error_str + "you might need to add them manually 😖"
+            error_str = error_str + "you might need to add them manually 😖"
             return {
                 "fileBody": str(res_b64),
                 "fileName": "bibliography",
@@ -86,7 +86,6 @@ def generate_bibtex_list(value):
 
 
 def generate_bibtex_one(paper, paper_id, paper_source):
-    return
     title = paper.get("title") or ""
     # print(f"Finding bibtex of \"{title}\"...")
     year = str(paper.get("year"))
