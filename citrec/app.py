@@ -51,7 +51,7 @@ def actions(payload):
 
     # when clicking see classic papers
     elif actionInfo["actionId"] == "classic":
-        return CitBot.show_classic_papers(ref_list_id=actionInfo["value"])
+        return CitBot.show_classic_papers(ref_list_id=actionInfo["value"], channel_id=payload["channel"])
 
     # when clicking previous page and next page in classic paper list
     elif (

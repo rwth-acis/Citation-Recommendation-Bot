@@ -254,19 +254,9 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 paper["inList"] = True
             else:
                 paper["inList"] = False
-        if ref_list:
-            for paper in ref_list:
-                id_source = str(paper["_id"]) + "," + paper["source"]
-                if id_source in marked_papers:
-                    paper["inList"] = True
-                else:
-                    paper["inList"] = False
     except StopIteration:
         for paper in rec_list:
             paper["inList"] = False
-        if ref_list:
-            for paper in ref_list:
-                paper["inList"] = False
 
     # found classic papers
     if ref_list:
@@ -394,9 +384,20 @@ def flip_page_rec(value, time, PAGE_MAX):
         }
 
 
-def show_classic_papers(ref_list_id):
+def show_classic_papers(ref_list_id, channel_id):
     try:
         ref_list = RESULTS.find({"_id": ObjectId(ref_list_id)}).next()
+        try:
+            marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
+            for paper in ref_list["papers"]:
+                id_source = str(paper["_id"]) + "," + paper["source"]
+                if id_source in marked_papers:
+                    paper["inList"] = True
+                else:
+                    paper["inList"] = False
+        except StopIteration:
+            for paper in ref_list:
+                paper["inList"] = False
         return {
             "blocks": render_template(
                 "ref_result.json.jinja2",
@@ -596,6 +597,37 @@ def find_papers_in_list(channel_id):
                 ).next()
             dic["source"] = "aminer"
             finded_papers.append(dic)
+    # handle broken url
+    for paper in finded_papers:
+        if paper["source"] == "aminer":
+            if "doi" in paper:
+                if paper["doi"] != "":
+                    paper["url"] = "https://doi.org/" + paper["doi"]
+            elif "url" in paper:
+                if isinstance(paper["url"], list):
+                    for url in paper.get("url"):
+                        if url.startswith("http"):
+                            if url.startswith("https://dblp"):
+                                continue
+                            paper["url"] = url
+                            break
+                        # no usable url, drop this key-value pairs
+                        del paper["url"]
+                elif isinstance(paper["url"], str):
+                    if not paper["url"].startswith("http"):
+                        del paper["url"]
+        else:
+            if "ee" in paper:
+                if isinstance(paper["ee"], list):
+                    for url in paper.get("ee"):
+                        if url.startswith("http"):
+                            paper["ee"] = url
+                            break
+                        # no usable url, drop this key-value pairs
+                        del paper["ee"]
+                elif isinstance(paper["ee"], str):
+                    if not paper["ee"].startswith("http"):
+                        del paper["ee"]
     list_id = ObjectId()
     LIST_TEMP.insert_one(
         {
@@ -988,4 +1020,4 @@ def handle_feedback(value):
                         FEEDBACK.update_one(
                             {"_id": id_source}, {"$set": {"feedback": feedback_list}}
                         )
-    return {"text": "Thanks for you feedback 🥰"}
+    return {"text": "Thanks for your feedback 🥰"}
