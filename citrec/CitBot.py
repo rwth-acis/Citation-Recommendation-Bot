@@ -14,6 +14,7 @@ import requests
 import pybtex.database
 import base64
 from unidecode import unidecode
+from betterbib.tools import pybtex_to_bibtex_string
 
 # Only 3 threads for finding bibtex (avoid blocking)
 POOL = ThreadPoolExecutor(max_workers=3)
@@ -95,12 +96,12 @@ def generate_bibtex_one(paper, paper_id, paper_source):
         author = paper.get("author") or ""
     if author and year:
         if isinstance(author, str):
-            key_id = unidecode(author.split()[-1] + "_" + str(eval(year) % 100))
+            key_id = unidecode(author.split()[-1] + str(eval(year) % 100))
         elif isinstance(author, list):
             author = author[0]
             if isinstance(author, dict):
                 author = author["name"]
-            key_id = unidecode(author.split()[-1] + "_" + str(eval(year) % 100))
+            key_id = unidecode(author.split()[-1] + str(eval(year) % 100))
 
     # Using doi api
     doi = paper.get("doi")
@@ -147,11 +148,17 @@ def generate_bibtex_one(paper, paper_id, paper_source):
             assert len(updated_entries.entries) == 1
             for new_key in updated_entries.entries:
                 updated_entry = updated_entries.entries[new_key]
-            updated_entry.key = key_id
+
+            if updated_entry.fields["url"]:
+                updated_entry.fields["url"] = urllib.request.unquote(
+                    updated_entry.fields["url"]
+                )
             BIBTEX.insert_one(
                 {
                     "_id": paper_id + "," + paper_source,
-                    "bib": updated_entry.to_string("bibtex"),
+                    "bib": pybtex_to_bibtex_string(
+                        updated_entry, key_id, indent="    "
+                    ),
                 }
             )
             # print(f"Bibtex of \"{title}\" have been found using doi.")
@@ -189,11 +196,10 @@ def generate_bibtex_one(paper, paper_id, paper_source):
             updated_entry.fields[
                 "journal"
             ] = f'arXiv preprint arXiv:{updated_entry.fields["volume"][4:]}'
-        updated_entry.key = key_id
         BIBTEX.insert_one(
             {
                 "_id": paper_id + "," + paper_source,
-                "bib": updated_entry.to_string("bibtex"),
+                "bib": pybtex_to_bibtex_string(updated_entry, key_id, indent="    "),
             }
         )
         # print(f"Bibtex of \"{title}\" have been found using dblp.")
