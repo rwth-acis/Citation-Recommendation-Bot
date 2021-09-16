@@ -15,6 +15,8 @@ if __name__ == "__main__":
     parser.add_argument("--dblp_dtd", help="path to the dtd file of dblp dataset")
     parser.add_argument("--dblp_xml", help="path to the xml file of dblp dataset")
     parser.add_argument("--citavi_sqlite", help="path to the Citavi sqlite")
+    parser.add_argument("--batch_size_1", default=16, help="generate batch_size_1 embeddings in the same time")
+    parser.add_argument("--batch_size_2", default=100000, help="compare batch_size_2 embeddings in the same time")
 
     args = parser.parse_args()
 
@@ -24,6 +26,9 @@ if __name__ == "__main__":
     # DBLP parameters
     dblp_dtd = args.dblp_dtd
     dblp_xml = args.dblp_xml
+    batch_size_1 = args.batch_size_1
+    batch_size_2 = args.batch_size_2
+
 
     # Citavi parameters
     citavi_sqlite = sqlite3.connect(args.citavi_sqlite)
@@ -56,7 +61,7 @@ if __name__ == "__main__":
     generate_embeddings(
         source_collection=dblp_mongodb,
         target_collection=dblp_spector_mongodb,
-        batch_size=16,
+        batch_size=batch_size_1,
     )
     # 3. Filter items in AMiner dataset according to the year, and store them in collection aminer_year
     print(
@@ -72,7 +77,7 @@ if __name__ == "__main__":
     generate_embeddings(
         source_collection=aminer_year_mongodb,
         target_collection=spector_year_mongodb,
-        batch_size=16,
+        batch_size=batch_size_1,
     )
     # 5. Compare Citavi dataset and AMiner dataset, store the intersection to citavi_mongodb
     print(
@@ -93,7 +98,7 @@ if __name__ == "__main__":
     generate_embeddings(
         source_collection=citavi_mongodb,
         target_collection=citavi_spector_mongodb,
-        batch_size=16,
+        batch_size=batch_size_1,
     )
     # 7. Add relevant papers to citavi, add the corresponding embeddings to citavi_spector_mongodb
     print(
@@ -104,6 +109,8 @@ if __name__ == "__main__":
         citavi_spector_mongodb=citavi_spector_mongodb,
         spector_year_mongodb=spector_year_mongodb,
         citavi_mongodb=citavi_mongodb,
+        threshold=0.8,
+        batch_size=batch_size_2,
     )
     # 8. Drop useless collections
     print("Dropping useless collections...")
