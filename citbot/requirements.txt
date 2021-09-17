@@ -1,2 +1,8 @@
 pymongo
 flask
+bibtexparser
+requests
+pybtex
+betterbib
+bibtex_dblp
+numpy
