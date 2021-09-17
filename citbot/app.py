@@ -1,8 +1,6 @@
 from flask import Flask, render_template
 import pymongo
 import json
-import argparse
-
 from CitRec import CitRec
 import CitBot
 import configparser
