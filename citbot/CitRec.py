@@ -9,8 +9,8 @@ config.read("config.ini")
 server_address = config.get("DEFAULT", "server_address")
 
 
-def load_embeddings(server_adress, collection):
-    client = pymongo.MongoClient(server_adress)
+def load_embeddings(server_address, collection):
+    client = pymongo.MongoClient(server_address)
     ids_embeddings = client["CitRec"][collection].find()
 
     embeddings = []
@@ -43,12 +43,12 @@ class CosineSimilarity(torch.nn.Module):
 class CitRec:
 
     # set embeddings as statistic variable
-    citavi_ids, citavi_embeddings = load_embeddings(server_adress, "Citavi_Spector")
-    dblp_ids, dblp_embeddings = load_embeddings(server_adress, "DBLP_Spector")
+    citavi_ids, citavi_embeddings = load_embeddings(server_address, "Citavi_Spector")
+    dblp_ids, dblp_embeddings = load_embeddings(server_address, "DBLP_Spector")
 
     def __init__(self):
-        self.server_adress = server_adress
-        self.client = pymongo.MongoClient(server_adress)
+        self.server_address = server_address
+        self.client = pymongo.MongoClient(server_address)
         self.db = self.client["CitRec"]
         self.citavi = self.db["Citavi"]
         self.aminer = self.db["AMiner"]

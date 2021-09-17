@@ -3,7 +3,7 @@ import pymongo
 import json
 import argparse
 
-# from CitRec import CitRec
+from CitRec import CitRec
 import CitBot
 import configparser
 
@@ -27,18 +27,18 @@ AMINER = DB_CITREC["AMiner"]
 DBLP = DB_CITREC["DBLP"]
 
 
-# @app.route("/rec/<payload>")
-# def rec(payload):
-#     payload = json.loads(payload)
-#     citrec = CitRec()
-#     rec_list, ref_list = citrec(context=payload["context"], k=K)
-#     return CitBot.generate_rec_result(
-#         context=payload["context"],
-#         rec_list=rec_list,
-#         ref_list=ref_list,
-#         channel_id=payload["channel"],
-#         PAGE_MAX=PAGE_MAX,
-#     )
+@app.route("/rec/<payload>")
+def rec(payload):
+    payload = json.loads(payload)
+    citrec = CitRec()
+    rec_list, ref_list = citrec(context=payload["context"], k=K)
+    return CitBot.generate_rec_result(
+        context=payload["context"],
+        rec_list=rec_list,
+        ref_list=ref_list,
+        channel_id=payload["channel"],
+        PAGE_MAX=PAGE_MAX,
+    )
 
 
 @app.route("/actions/<payload>")

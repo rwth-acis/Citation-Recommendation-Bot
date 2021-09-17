@@ -7,3 +7,4 @@ citrec/.flaskenv
 citrec/bib_cache/*
 # except for .gitkeep
 !.gitkeep
+citbot/config.ini

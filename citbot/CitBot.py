@@ -298,6 +298,8 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "max_page": 1,
                 "add2list": add2list,
                 "context": context,
+                "generateAt": datetime.datetime.utcnow(),
+                "operateAt": datetime.datetime.utcnow(),
             }
         )
         """""" """""" """"end""" """""" """""" ""
@@ -335,6 +337,8 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "max_page": 1,
                 "add2list": add2list,
                 "context": context,
+                "generateAt": datetime.datetime.utcnow(),
+                "operateAt": datetime.datetime.utcnow(),
             }
         )
         """""" """""" """"end""" """""" """""" ""
@@ -369,6 +373,16 @@ def flip_page_rec(value, time, PAGE_MAX):
                     "$set": {
                         "max_page": page + 1,
                         "add2list": (log["add2list"] + add2list),
+                        "operateAt": datetime.datetime.utcnow(),
+                    }
+                },
+            )
+        else:
+            EVALUATION.update_one(
+                {"_id": ObjectId(rec_list_id)},
+                {
+                    "$set": {
+                        "operateAt": datetime.datetime.utcnow(),
                     }
                 },
             )
@@ -488,7 +502,13 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
             """These codes are for evaluation"""
             log = EVALUATION.find({"_id": ObjectId(ind)}).next()
             EVALUATION.update_one(
-                {"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] + 1}}
+                {"_id": ObjectId(ind)},
+                {
+                    "$set": {
+                        "add2list": log["add2list"] + 1,
+                        "operateAt": datetime.datetime.utcnow(),
+                    }
+                },
             )
             """""" """""" """"end""" """""" """""" ""
             return {
@@ -923,7 +943,13 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
             """These codes are for evaluation"""
             log = EVALUATION.find({"_id": ObjectId(ind)}).next()
             EVALUATION.update_one(
-                {"_id": ObjectId(ind)}, {"$set": {"add2list": log["add2list"] - 1}}
+                {"_id": ObjectId(ind)},
+                {
+                    "$set": {
+                        "add2list": log["add2list"] - 1,
+                        "operateAt": datetime.datetime.utcnow(),
+                    }
+                },
             )
             """""" """""" """"end""" """""" """""" ""
             return {
