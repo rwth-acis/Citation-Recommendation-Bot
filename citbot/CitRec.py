@@ -50,7 +50,6 @@ class CitRec:
         self.server_address = server_address
         self.client = pymongo.MongoClient(server_address)
         self.db = self.client["CitRec"]
-        self.citavi = self.db["Citavi"]
         self.aminer = self.db["AMiner"]
         self.dblp = self.db["DBLP"]
         self.cos = CosineSimilarity().to("cpu")
