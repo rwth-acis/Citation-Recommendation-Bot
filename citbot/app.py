@@ -1,19 +1,23 @@
 from flask import Flask, render_template
 import pymongo
 import json
+import argparse
 
 # from CitRec import CitRec
 import CitBot
+import configparser
 
+config = configparser.ConfigParser()
+config.read("config.ini")
 
-K = 50
+K = int(config.get("DEFAULT", "k"))
 if K % 5 == 0:
     PAGE_MAX = K // 5 - 1
 else:
     PAGE_MAX = K // 5
 
 app = Flask(__name__)
-SERVER_ADDRESS = "localhost:27017"
+SERVER_ADDRESS = config.get("DEFAULT", "server_address")
 CLIENT = pymongo.MongoClient(SERVER_ADDRESS)
 DB_CITBOT = CLIENT["CitBot"]
 MARK_LIST = DB_CITBOT["Lists"]
@@ -51,7 +55,9 @@ def actions(payload):
 
     # when clicking see classic papers
     elif actionInfo["actionId"] == "classic":
-        return CitBot.show_classic_papers(ref_list_id=actionInfo["value"], channel_id=payload["channel"])
+        return CitBot.show_classic_papers(
+            ref_list_id=actionInfo["value"], channel_id=payload["channel"]
+        )
 
     # when clicking previous page and next page in classic paper list
     elif (

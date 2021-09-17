@@ -15,12 +15,14 @@ import pybtex.database
 import base64
 from unidecode import unidecode
 from betterbib.tools import pybtex_to_bibtex_string
+import configparser
 
 # Only 3 threads for finding bibtex (avoid blocking)
 POOL = ThreadPoolExecutor(max_workers=3)
 
-
-SERVER_ADDRESS = "localhost:27017"
+config = configparser.ConfigParser()
+config.read("config.ini")
+SERVER_ADDRESS = config.get("DEFAULT", "server_address")
 CLIENT = pymongo.MongoClient(SERVER_ADDRESS)
 DB_CITBOT = CLIENT["CitBot"]
 MARK_LISTS = DB_CITBOT["Lists"]

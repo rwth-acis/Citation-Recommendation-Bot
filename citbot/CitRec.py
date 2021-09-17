@@ -1,9 +1,12 @@
 import torch
 import pymongo
 from transformers import AutoModel, AutoTokenizer
+import configparser
 
 
-server_adress = "localhost:27017"
+config = configparser.ConfigParser()
+config.read("config.ini")
+server_address = config.get("DEFAULT", "server_address")
 
 
 def load_embeddings(server_adress, collection):
