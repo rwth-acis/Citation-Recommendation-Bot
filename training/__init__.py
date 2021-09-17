@@ -9,6 +9,7 @@ from Citavi import compare_doi, compare_title, add_relevant_papers
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--server_address", help="MongoDB's server address")
     parser.add_argument(
         "--year_AMiner", type=int, help="in which year the AMiner dataset was published"
     )
@@ -29,12 +30,11 @@ if __name__ == "__main__":
     batch_size_1 = args.batch_size_1
     batch_size_2 = args.batch_size_2
 
-
     # Citavi parameters
     citavi_sqlite = sqlite3.connect(args.citavi_sqlite)
 
     # MongoDB parameters
-    client = pymongo.MongoClient("mongodb")
+    client = pymongo.MongoClient(args.server_address)
     mongodb = client["CitRec"]
     # Collection contains paper items
     aminer_mongodb = mongodb["AMiner"]

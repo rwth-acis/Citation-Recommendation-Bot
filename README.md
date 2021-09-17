@@ -18,11 +18,7 @@ Here we highly recommend not to change the name of the docker compose, because t
 
 #### AMiner dateset
 
-[Download the AMiner dataset](https://www.aminer.org/citation) (current version: v13) at first, here you should note that the `json` file was build as `JsonArray`, but missing a `]` at the end. To add it, run in the terminal:
-
-```bash
-echo "]" >> dblpv13.json
-```
+[Download the AMiner dataset](https://www.aminer.org/citation) (current version: v13) at first, here you should note that the `json` file was build as `JsonArray`.
 
 Now move the Json file to `citrec_mongodb` container using shell command (the name of container might change):
 
@@ -34,7 +30,7 @@ Then import the json data to the mongdb with database name `CitRec`and collectio
 To import, please use following shell command in `citrec_mongodb` container:
 
 ```bash
-mongoimport --db CitRec --collection AMiner --jsonArray --file <path>/dblpv13.json
+mongoimport --db CitRec --collection AMiner --jsonArray --legacy --file <path>/dblpv13.json
 ```
 
 #### DBLP dataset
