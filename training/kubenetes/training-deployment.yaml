@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.version: 1.24.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: training
+  name: training
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: training
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml
+        kompose.version: 1.24.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/mongodb-net: "true"
+        io.kompose.service: training
+    spec:
+      containers:
+        - image: marslicy/citbot-training
+          name: training
+          ports:
+            - containerPort: 27017
+          resources: {}
+          stdin: true
+          tty: true
+      restartPolicy: Always
+status: {}
