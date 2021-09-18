@@ -16,8 +16,8 @@ if __name__ == "__main__":
     parser.add_argument("--dblp_dtd", help="path to the dtd file of dblp dataset")
     parser.add_argument("--dblp_xml", help="path to the xml file of dblp dataset")
     parser.add_argument("--citavi_sqlite", help="path to the Citavi sqlite")
-    parser.add_argument("--batch_size_1", default=16, help="generate batch_size_1 embeddings in the same time")
-    parser.add_argument("--batch_size_2", default=100000, help="compare batch_size_2 embeddings in the same time")
+    parser.add_argument("--batch_size_1", type=int, default=16, help="generate batch_size_1 embeddings in the same time")
+    parser.add_argument("--batch_size_2", type=int, default=100000, help="compare batch_size_2 embeddings in the same time")
 
     args = parser.parse_args()
 
