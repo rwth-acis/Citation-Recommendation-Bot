@@ -401,6 +401,17 @@ def flip_page_rec(value, time, PAGE_MAX):
             "ts": time,
         }
     except StopIteration:
+        """These codes are for evaluation"""
+        EVALUATION.update_one(
+            {"_id": ObjectId(rec_list_id)},
+            {
+                "$set": {
+                    "max_page": page + 1,
+                    "operateAt": datetime.datetime.utcnow(),
+                }
+            },
+        )
+        """""" """""" """"end""" """""" """""" ""
         return {
             "text": "This is an outdated message (more than 60 minutes), please send me the citation context again 🥺"
         }
