@@ -1,8 +1,9 @@
 pymongo
 flask
-bibtexparser
+bibtexparser==1.2.0
 requests
-pybtex
-betterbib
-bibtex_dblp
+pybtex==0.24.0
+betterbib==3.5.16
+bibtex-dblp==0.5
 numpy
+unidecode

@@ -1,8 +1,8 @@
-version: "3.9"
+version: "3.8"
 
 services:
     application:
-        build: .
+        image: "marslicy/citbot-application"
         networks:
             - mongodb-net
         ports:
@@ -13,17 +13,15 @@ services:
         image: "mongo"
         networks:
             - mongodb-net
+        ports: 
+            - "27017:27017"
         volumes: 
             - type: volume
-              source: mongodb-vol
-              target: /data/db
-            - type: volume
-              source: mongodb_config-vol
-              target: /data/configdb
+              source: citation-storage-pv-claim
+              target: /data
 
 networks: 
     mongodb-net:
 
 volumes:
-    mongodb-vol:
-    mongodb_config-vol:
+    citation-storage-pv-claim:
