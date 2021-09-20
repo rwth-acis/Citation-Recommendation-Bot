@@ -105,7 +105,7 @@ if __name__ == "__main__":
     # set collections
     db = client["CitRec"]
     source_collection = db["Context"]
-    target_collection = db["Spector"]
+    target_collection = db["Specter"]
     # set bach size
     batch_size = 16
     generate_embeddings(source_collection, target_collection, batch_size)

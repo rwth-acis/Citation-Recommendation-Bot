@@ -43,8 +43,8 @@ class CosineSimilarity(torch.nn.Module):
 class CitRec:
 
     # set embeddings as statistic variable
-    citavi_ids, citavi_embeddings = load_embeddings(server_address, "Citavi_Spector")
-    dblp_ids, dblp_embeddings = load_embeddings(server_address, "DBLP_Spector")
+    citavi_ids, citavi_embeddings = load_embeddings(server_address, "Citavi_Specter")
+    dblp_ids, dblp_embeddings = load_embeddings(server_address, "DBLP_Specter")
 
     def __init__(self):
         self.server_address = server_address

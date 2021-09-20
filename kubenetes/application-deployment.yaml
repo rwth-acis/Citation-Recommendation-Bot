@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.version: 1.24.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: application
+  name: application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: application
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml
+        kompose.version: 1.24.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/mongodb-net: "true"
+        io.kompose.service: application
+    spec:
+      containers:
+        - image: marslicy/citbot-application
+          name: application
+          ports:
+            - containerPort: 5000
+          resources: {}
+          stdin: true
+          tty: true
+      restartPolicy: Always
+status: {}

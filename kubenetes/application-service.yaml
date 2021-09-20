@@ -6,14 +6,14 @@ metadata:
     kompose.version: 1.24.0 (HEAD)
   creationTimestamp: null
   labels:
-    io.kompose.service: training
-  name: training
+    io.kompose.service: application
+  name: application
 spec:
   ports:
-    - name: "27017"
-      port: 27017
-      targetPort: 27017
+    - name: "5000"
+      port: 5000
+      targetPort: 5000
   selector:
-    io.kompose.service: training
+    io.kompose.service: application
 status:
   loadBalancer: {}

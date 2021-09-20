@@ -24,12 +24,14 @@ spec:
         io.kompose.network/mongodb-net: "true"
         io.kompose.service: training
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: mp-server
       containers:
         - image: marslicy/citbot-training
+          resources:
+            limits:
+              nvidia.com/gpu: 1 # requesting 1 GPU
           name: training
-          ports:
-            - containerPort: 27017
-          resources: {}
           stdin: true
           tty: true
       restartPolicy: Always

@@ -2,7 +2,7 @@ import sqlite3
 import pymongo
 import argparse
 from DBLP import filter_year_dblp2json
-from Spector import generate_embeddings
+from Specter import generate_embeddings
 from AMiner import filter_year_aminer
 from Citavi import compare_doi, compare_title, add_relevant_papers
 
@@ -42,9 +42,9 @@ if __name__ == "__main__":
     citavi_mongodb = mongodb["Citavi"]
     dblp_mongodb = mongodb["DBLP"]
     # Collection contains embeddings
-    spector_year_mongodb = mongodb["Spector_" + str(int(year_AMiner) - 3)]
-    citavi_spector_mongodb = mongodb["Citavi_Spector"]
-    dblp_spector_mongodb = mongodb["DBLP_Spector"]
+    specter_year_mongodb = mongodb["Specter_" + str(int(year_AMiner) - 3)]
+    citavi_specter_mongodb = mongodb["Citavi_Specter"]
+    dblp_specter_mongodb = mongodb["DBLP_Specter"]
 
     # 1. Filter items in DBLP dataset according to the year, and store them in collection DBLP
     print(
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print("Generating embeddings for dblp dataset...")
     generate_embeddings(
         source_collection=dblp_mongodb,
-        target_collection=dblp_spector_mongodb,
+        target_collection=dblp_specter_mongodb,
         batch_size=batch_size_1,
     )
     # 3. Filter items in AMiner dataset according to the year, and store them in collection aminer_year
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     print("Generating embeddings for aminer_year dataset")
     generate_embeddings(
         source_collection=aminer_year_mongodb,
-        target_collection=spector_year_mongodb,
+        target_collection=specter_year_mongodb,
         batch_size=batch_size_1,
     )
     # 5. Compare Citavi dataset and AMiner dataset, store the intersection to citavi_mongodb
@@ -97,17 +97,17 @@ if __name__ == "__main__":
     print("Generating embeddings for citavi items...")
     generate_embeddings(
         source_collection=citavi_mongodb,
-        target_collection=citavi_spector_mongodb,
+        target_collection=citavi_specter_mongodb,
         batch_size=batch_size_1,
     )
-    # 7. Add relevant papers to citavi, add the corresponding embeddings to citavi_spector_mongodb
+    # 7. Add relevant papers to citavi, add the corresponding embeddings to citavi_specter_mongodb
     print(
-        "Adding relevant papers to citavi, adding the corresponding embeddings to citavi_spector_mongodb..."
+        "Adding relevant papers to citavi, adding the corresponding embeddings to citavi_specter_mongodb..."
     )
     add_relevant_papers(
         aminer_year_mongodb=aminer_mongodb,
-        citavi_spector_mongodb=citavi_spector_mongodb,
-        spector_year_mongodb=spector_year_mongodb,
+        citavi_specter_mongodb=citavi_specter_mongodb,
+        specter_year_mongodb=specter_year_mongodb,
         citavi_mongodb=citavi_mongodb,
         threshold=0.8,
         batch_size=batch_size_2,
@@ -115,5 +115,5 @@ if __name__ == "__main__":
     # 8. Drop useless collections
     print("Dropping useless collections...")
     aminer_year_mongodb.drop()
-    spector_year_mongodb.drop()
+    specter_year_mongodb.drop()
     citavi_mongodb.drop()
