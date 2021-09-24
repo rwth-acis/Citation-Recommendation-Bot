@@ -1,0 +1,39 @@
+## intent:  begrüßung
+
+- Hallo
+
+- Moin
+
+- hallo
+
+- hey
+
+- Hi
+
+- Guten Tag
+
+- guten tag 
+
+- hallöchen
+
+- hello
+
+## intent: help
+
+- How to use 
+
+- How can I get recommendation
+
+- Could you tell me how I can 
+
+- help
+
+- I need help
+
+- give me some indication
+
+## intent: unsatisfy
+
+- Not satisfied with the recommendation
+
+- Unsatisfied with the result
