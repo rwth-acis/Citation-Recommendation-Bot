@@ -61,7 +61,7 @@ class CitRec:
         ids_relevances_citavi, ids_relevances = self.find_topk_relevant_papers(
             embedding, k
         )
-        ids_ref = self.consider_references(ids_relevances_citavi, threshold=5)
+        ids_ref = self.consider_references(ids_relevances_citavi, threshold=k / 10)
         rec_list = self.find_papers_with_ids_relevances(ids_relevances)
         rec_list_ref = self.find_papers_with_ids(ids_ref)
         return (rec_list, rec_list_ref)
@@ -130,7 +130,7 @@ class CitRec:
 
         return (ids_relevances_citavi, ids_relevances[:k])
 
-    def consider_references(self, ids_relevances_citavi, threshold=5):
+    def consider_references(self, ids_relevances_citavi, threshold=5.0):
         frequency = {}
         for i, _, _ in ids_relevances_citavi:
             references = (
@@ -165,7 +165,6 @@ class CitRec:
                         "author": 1,
                         "year": 1,
                         "ee": 1,
-                        "bib": 1,
                     },
                 ).next()
                 dic["rel_score"] = rel
@@ -180,7 +179,6 @@ class CitRec:
                         "year": 1,
                         "doi": 1,
                         "url": 1,
-                        "bib": 1,
                     },
                 ).next()
                 dic["rel_score"] = rel
@@ -232,7 +230,6 @@ class CitRec:
                     "venue.raw": 1,
                     "year": 1,
                     "url": 1,
-                    "bib": 1,
                 },
             ).next()
             dic["source"] = "aminer"

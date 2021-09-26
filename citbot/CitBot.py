@@ -254,16 +254,17 @@ def generate_bibtex_one(paper, paper_id, paper_source):
 
 
 def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
+    papers = rec_list[:5]
     try:
         marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-        for paper in rec_list:
+        for paper in papers:
             id_source = str(paper["_id"]) + "," + paper["source"]
             if id_source in marked_papers:
                 paper["inList"] = True
             else:
                 paper["inList"] = False
     except StopIteration:
-        for paper in rec_list:
+        for paper in papers:
             paper["inList"] = False
 
     # found classic papers
@@ -307,7 +308,7 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
             "blocks": render_template(
                 "rec_result.json.jinja2",
                 context=context,
-                rec_list=rec_list[:5],
+                rec_list=papers,
                 rec_list_id=rec_list_id,
                 ref_list_id=ref_list_id,
                 page=0,
@@ -346,7 +347,7 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
             "blocks": render_template(
                 "rec_result.json.jinja2",
                 context=context,
-                rec_list=rec_list[:5],
+                rec_list=papers,
                 rec_list_id=rec_list_id,
                 ref_list_id=None,
                 page=0,
@@ -355,16 +356,31 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
         }
 
 
-def flip_page_rec(value, time, PAGE_MAX):
+def flip_page_rec(value, time, channel_id, PAGE_MAX):
     rec_list_id, page = tuple(value.split(","))
     page = int(page)
     try:
         rec_list = RESULTS.find({"_id": ObjectId(rec_list_id)}).next()
+        papers = rec_list["papers"][(page * 5) : (page * 5 + 5)]
+        try:
+            marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
+            for paper in papers:
+                id_source = str(paper["_id"]) + "," + paper["source"]
+                if id_source in marked_papers:
+                    paper["inList"] = True
+                else:
+                    paper["inList"] = False
+        except StopIteration:
+            for paper in papers:
+                paper["inList"] = False
+        RESULTS.update_one(
+            {"_id": ObjectId(rec_list_id)}, {"$set": {"papers": rec_list["papers"]}}
+        )
         """These codes are for evaluation"""
         log = EVALUATION.find({"_id": ObjectId(rec_list_id)}).next()
         if log["max_page"] < (page + 1):
             add2list = 0
-            for paper in rec_list["papers"][(page * 5) : (page * 5 + 5)]:
+            for paper in papers:
                 if paper["inList"] == True:
                     add2list += 1
             EVALUATION.update_one(
@@ -391,7 +407,7 @@ def flip_page_rec(value, time, PAGE_MAX):
             "blocks": render_template(
                 "rec_result.json.jinja2",
                 context=rec_list["context"],
-                rec_list=rec_list["papers"][(page * 5) : (page * 5 + 5)],
+                rec_list=papers,
                 rec_list_id=rec_list["_id"],
                 ref_list_id=rec_list["refId"],
                 page=page,
@@ -420,22 +436,26 @@ def flip_page_rec(value, time, PAGE_MAX):
 def show_classic_papers(ref_list_id, channel_id):
     try:
         ref_list = RESULTS.find({"_id": ObjectId(ref_list_id)}).next()
+        papers = ref_list["papers"][:5]
         try:
             marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-            for paper in ref_list["papers"]:
+            for paper in papers:
                 id_source = str(paper["_id"]) + "," + paper["source"]
                 if id_source in marked_papers:
                     paper["inList"] = True
                 else:
                     paper["inList"] = False
         except StopIteration:
-            for paper in ref_list:
+            for paper in papers:
                 paper["inList"] = False
+        RESULTS.update_one(
+            {"_id": ObjectId(ref_list_id)}, {"$set": {"papers": ref_list["papers"]}}
+        )
         return {
             "blocks": render_template(
                 "ref_result.json.jinja2",
                 context=ref_list["context"],
-                ref_list=ref_list["papers"][:5],
+                ref_list=papers,
                 ref_list_id=ref_list["_id"],
                 next_page=True if len(ref_list["papers"]) > 5 else False,
                 page=0,
@@ -447,16 +467,31 @@ def show_classic_papers(ref_list_id, channel_id):
         }
 
 
-def flip_page_ref(value, time):
+def flip_page_ref(value, time, channel_id):
     ref_list_id, page = tuple(value.split(","))
     page = int(page)
     try:
         ref_list = RESULTS.find({"_id": ObjectId(ref_list_id)}).next()
+        papers = ref_list["papers"][(page * 5) : (page * 5 + 5)]
+        try:
+            marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
+            for paper in papers:
+                id_source = str(paper["_id"]) + "," + paper["source"]
+                if id_source in marked_papers:
+                    paper["inList"] = True
+                else:
+                    paper["inList"] = False
+        except StopIteration:
+            for paper in papers:
+                paper["inList"] = False
+        RESULTS.update_one(
+            {"_id": ObjectId(ref_list_id)}, {"$set": {"papers": ref_list["papers"]}}
+        )
         return {
             "blocks": render_template(
                 "ref_result.json.jinja2",
                 context=ref_list["context"],
-                ref_list=ref_list["papers"][(page * 5) : (page * 5 + 5)],
+                ref_list=papers,
                 ref_list_id=ref_list["_id"],
                 next_page=True if len(ref_list["papers"][(page * 5) :]) > 5 else False,
                 page=page,
@@ -481,17 +516,17 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
             {
                 "_id": channel_id,
                 "marked": mark,
-                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=180),
             }
         )
     except pymongo.errors.DuplicateKeyError:
         mark += MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-        MARK_LISTS.update(
+        MARK_LISTS.update_one(
             {"_id": channel_id},
             {
-                # delete duplicate papers
-                "marked": sorted(set(mark), key=mark.index),
-                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=180),
+                "$set": {
+                    # delete duplicate papers
+                    "marked": sorted(set(mark), key=mark.index),
+                }
             },
         )
 
@@ -593,7 +628,6 @@ def find_papers_in_list(channel_id):
                         "author": 1,
                         "year": 1,
                         "ee": 1,
-                        "bib": 1,
                     },
                 ).next()
             except StopIteration:
@@ -604,7 +638,6 @@ def find_papers_in_list(channel_id):
                         "author": 1,
                         "year": 1,
                         "ee": 1,
-                        "bib": 1,
                     },
                 ).next()
             dic["source"] = "dblp"
@@ -619,7 +652,6 @@ def find_papers_in_list(channel_id):
                         "year": 1,
                         "doi": 1,
                         "url": 1,
-                        "bib": 1,
                     },
                 ).next()
             except StopIteration:
@@ -631,7 +663,6 @@ def find_papers_in_list(channel_id):
                         "year": 1,
                         "doi": 1,
                         "url": 1,
-                        "bib": 1,
                     },
                 ).next()
             dic["source"] = "aminer"
@@ -718,7 +749,7 @@ def del_paper_in_list(value, time, channel_id):
         marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
     except StopIteration:
         return {
-            "text": "No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺"
+            "text": "No papers in your marking lists, please add items into the marking list at first 🥺"
         }
 
     try:
@@ -731,7 +762,7 @@ def del_paper_in_list(value, time, channel_id):
             if paper["_id"] == paper_id or paper["_id"] == ObjectId(paper_id):
                 marked_papers.remove(paper)
                 break
-        LIST_TEMP.update(
+        LIST_TEMP.update_one(
             {"_id": ObjectId(list_id)}, {"$set": {"papers": marked_papers}}
         )
         return {
@@ -778,7 +809,6 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
                 "year": 1,
                 "doi": 1,
                 "url": 1,
-                "bib": 1,
                 "source": "aminer",
                 "score": {"$meta": "textScore"},
             },
@@ -794,7 +824,6 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
                 "author": 1,
                 "year": 1,
                 "ee": 1,
-                "bib": 1,
                 "source": "dblp",
                 "score": {"$meta": "textScore"},
             },
@@ -930,12 +959,13 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
     try:
         marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
         marked_papers.remove(remove)
-        MARK_LISTS.update(
+        MARK_LISTS.update_one(
             {"_id": channel_id},
             {
-                # delete duplicate papers
-                "marked": marked_papers,
-                "expireAt": datetime.datetime.utcnow() + datetime.timedelta(days=60),
+                "$set": {
+                    # delete duplicate papers
+                    "marked": marked_papers,
+                },
             },
         )
     except Exception:

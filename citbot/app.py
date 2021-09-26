@@ -48,7 +48,10 @@ def actions(payload):
     # when clicking previous page and next page in recommendation result list
     if actionInfo["actionId"] == "next_rec" or actionInfo["actionId"] == "previous_rec":
         return CitBot.flip_page_rec(
-            value=actionInfo["value"], time=payload["time"], PAGE_MAX=PAGE_MAX
+            value=actionInfo["value"],
+            time=payload["time"],
+            channel_id=payload["channel"],
+            PAGE_MAX=PAGE_MAX,
         )
 
     # when clicking see classic papers
@@ -61,7 +64,11 @@ def actions(payload):
     elif (
         actionInfo["actionId"] == "previous_ref" or actionInfo["actionId"] == "next_ref"
     ):
-        return CitBot.flip_page_ref(value=actionInfo["value"], time=payload["time"])
+        return CitBot.flip_page_ref(
+            value=actionInfo["value"],
+            time=payload["time"],
+            channel_id=payload["channel"],
+        )
 
     # when clicking the add2list button
     elif actionInfo["actionId"] == "add2list":
