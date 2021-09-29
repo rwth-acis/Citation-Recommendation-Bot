@@ -510,22 +510,23 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
 
     # add paper to the marking list
     page = int(page)
-    mark = [paper_id + "," + paper_source]
+    marked = [paper_id + "," + paper_source]
     try:
         MARK_LISTS.insert_one(
             {
                 "_id": channel_id,
-                "marked": mark,
+                "marked": marked,
             }
         )
     except pymongo.errors.DuplicateKeyError:
-        mark += MARK_LISTS.find({"_id": channel_id}).next()["marked"]
+        marked += MARK_LISTS.find({"_id": channel_id}).next()["marked"]
+        marked = sorted(set(marked), key=marked.index)
         MARK_LISTS.update_one(
             {"_id": channel_id},
             {
                 "$set": {
                     # delete duplicate papers
-                    "marked": sorted(set(mark), key=mark.index),
+                    "marked": marked,
                 }
             },
         )
@@ -533,12 +534,14 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
     try:
         rec_or_ref_or_kw_result = RESULTS.find({"_id": ObjectId(ind)}).next()
         for paper in (rec_or_ref_or_kw_result["papers"])[(page * 5) :]:
-            if paper["_id"] == paper_id or paper["_id"] == ObjectId(paper_id):
+            if str(paper["_id"]) + ',' + paper["source"] in set(marked):
                 paper["inList"] = True
                 # add bibtex information
                 if BIBTEX.find({"_id": paper_id + "," + paper_source}).count() == 0:
                     POOL.submit(generate_bibtex_one, paper, paper_id, paper_source)
                     # generate_bibtex_one(paper, paper_id, paper_source)
+            else: 
+                paper["inList"] = False
 
         RESULTS.update_one(
             {"_id": ObjectId(ind)},
@@ -957,24 +960,26 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
     page = int(page)
     remove = paper_id + "," + paper_source
     try:
-        marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-        marked_papers.remove(remove)
+        marked = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
+        marked.remove(remove)
         MARK_LISTS.update_one(
             {"_id": channel_id},
             {
                 "$set": {
                     # delete duplicate papers
-                    "marked": marked_papers,
+                    "marked": marked,
                 },
             },
         )
     except Exception:
-        pass
+        marked = []
 
     try:
         rec_or_ref_or_kw_result = RESULTS.find({"_id": ObjectId(ind)}).next()
         for paper in (rec_or_ref_or_kw_result["papers"])[(page * 5) :]:
-            if paper["_id"] == paper_id or paper["_id"] == ObjectId(paper_id):
+            if str(paper["_id"]) + ',' + paper["source"] in set(marked):
+                paper["inList"] = True
+            else:
                 paper["inList"] = False
         RESULTS.update_one(
             {"_id": ObjectId(ind)},
