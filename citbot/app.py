@@ -111,7 +111,7 @@ def actions(payload):
 
     elif actionInfo["actionId"] == "next_kw" or actionInfo["actionId"] == "previous_kw":
         return CitBot.flip_page_kw(
-            value=actionInfo["value"], time=payload["time"], PAGE_MAX=PAGE_MAX
+            value=actionInfo["value"], time=payload["time"], channel_id=payload["channel"], PAGE_MAX=PAGE_MAX
         )
 
     elif actionInfo["actionId"] == "feedback_submit":

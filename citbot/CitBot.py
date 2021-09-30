@@ -39,6 +39,21 @@ EVALUATION = DB_CITBOT["Evaluation"]
 """""" """""" """"end""" """""" """""" ""
 
 
+def inList_check(papers, channel_id):
+    try:
+        marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
+        for paper in papers:
+            id_source = str(paper["_id"]) + "," + paper["source"]
+            if id_source in marked_papers:
+                paper["inList"] = True
+            else:
+                paper["inList"] = False
+    except StopIteration:
+        for paper in papers:
+            paper["inList"] = False
+    return papers
+
+
 def generate_bibtex_list(value):
     try:
         marked_papers = LIST_TEMP.find({"_id": ObjectId(value)}).next()["papers"]
@@ -254,19 +269,6 @@ def generate_bibtex_one(paper, paper_id, paper_source):
 
 
 def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
-    papers = rec_list[:5]
-    try:
-        marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-        for paper in papers:
-            id_source = str(paper["_id"]) + "," + paper["source"]
-            if id_source in marked_papers:
-                paper["inList"] = True
-            else:
-                paper["inList"] = False
-    except StopIteration:
-        for paper in papers:
-            paper["inList"] = False
-
     # found classic papers
     if ref_list:
         ref_list_id = ObjectId()
@@ -288,9 +290,10 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             }
         )
+        papers = inList_check(rec_list[:5], channel_id)
         """These codes are for evaluation"""
         add2list = 0
-        for paper in rec_list[:5]:
+        for paper in papers:
             if paper["inList"] == True:
                 add2list += 1
         EVALUATION.insert_one(
@@ -327,9 +330,10 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             }
         )
+        papers = inList_check(rec_list[:5], channel_id)
         """These codes are for evaluation"""
         add2list = 0
-        for paper in rec_list[:5]:
+        for paper in papers:
             if paper["inList"] == True:
                 add2list += 1
         EVALUATION.insert_one(
@@ -361,20 +365,8 @@ def flip_page_rec(value, time, channel_id, PAGE_MAX):
     page = int(page)
     try:
         rec_list = RESULTS.find({"_id": ObjectId(rec_list_id)}).next()
-        papers = rec_list["papers"][(page * 5) : (page * 5 + 5)]
-        try:
-            marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-            for paper in papers:
-                id_source = str(paper["_id"]) + "," + paper["source"]
-                if id_source in marked_papers:
-                    paper["inList"] = True
-                else:
-                    paper["inList"] = False
-        except StopIteration:
-            for paper in papers:
-                paper["inList"] = False
-        RESULTS.update_one(
-            {"_id": ObjectId(rec_list_id)}, {"$set": {"papers": rec_list["papers"]}}
+        papers = inList_check(
+            rec_list["papers"][(page * 5) : (page * 5 + 5)], channel_id
         )
         """These codes are for evaluation"""
         log = EVALUATION.find({"_id": ObjectId(rec_list_id)}).next()
@@ -436,21 +428,7 @@ def flip_page_rec(value, time, channel_id, PAGE_MAX):
 def show_classic_papers(ref_list_id, channel_id):
     try:
         ref_list = RESULTS.find({"_id": ObjectId(ref_list_id)}).next()
-        papers = ref_list["papers"][:5]
-        try:
-            marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-            for paper in papers:
-                id_source = str(paper["_id"]) + "," + paper["source"]
-                if id_source in marked_papers:
-                    paper["inList"] = True
-                else:
-                    paper["inList"] = False
-        except StopIteration:
-            for paper in papers:
-                paper["inList"] = False
-        RESULTS.update_one(
-            {"_id": ObjectId(ref_list_id)}, {"$set": {"papers": ref_list["papers"]}}
-        )
+        papers = inList_check(ref_list["papers"][:5], channel_id)
         return {
             "blocks": render_template(
                 "ref_result.json.jinja2",
@@ -472,20 +450,8 @@ def flip_page_ref(value, time, channel_id):
     page = int(page)
     try:
         ref_list = RESULTS.find({"_id": ObjectId(ref_list_id)}).next()
-        papers = ref_list["papers"][(page * 5) : (page * 5 + 5)]
-        try:
-            marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-            for paper in papers:
-                id_source = str(paper["_id"]) + "," + paper["source"]
-                if id_source in marked_papers:
-                    paper["inList"] = True
-                else:
-                    paper["inList"] = False
-        except StopIteration:
-            for paper in papers:
-                paper["inList"] = False
-        RESULTS.update_one(
-            {"_id": ObjectId(ref_list_id)}, {"$set": {"papers": ref_list["papers"]}}
+        papers = inList_check(
+            ref_list["papers"][(page * 5) : (page * 5 + 5)], channel_id
         )
         return {
             "blocks": render_template(
@@ -534,13 +500,13 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
     try:
         rec_or_ref_or_kw_result = RESULTS.find({"_id": ObjectId(ind)}).next()
         for paper in (rec_or_ref_or_kw_result["papers"])[(page * 5) :]:
-            if str(paper["_id"]) + ',' + paper["source"] in set(marked):
+            if str(paper["_id"]) + "," + paper["source"] in set(marked):
                 paper["inList"] = True
                 # add bibtex information
                 if BIBTEX.find({"_id": paper_id + "," + paper_source}).count() == 0:
                     POOL.submit(generate_bibtex_one, paper, paper_id, paper_source)
                     # generate_bibtex_one(paper, paper_id, paper_source)
-            else: 
+            else:
                 paper["inList"] = False
 
         RESULTS.update_one(
@@ -897,18 +863,6 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
                         if not paper["ee"].startswith("http"):
                             del paper["ee"]
 
-        try:
-            marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
-            for paper in kw_list:
-                id_source = str(paper["_id"]) + "," + paper["source"]
-                if id_source in marked_papers:
-                    paper["inList"] = True
-                else:
-                    paper["inList"] = False
-        except StopIteration:
-            for paper in kw_list:
-                paper["inList"] = False
-
         kw_list_id = ObjectId()
         RESULTS.insert_one(
             {
@@ -918,11 +872,14 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             }
         )
+
+        papers = inList_check(kw_list[:5], channel_id)
+
         return {
             "blocks": render_template(
                 "kw_result.json.jinja2",
                 keywords=keywords,
-                kw_list=kw_list[:5],
+                kw_list=papers,
                 kw_list_id=kw_list_id,
                 page=0,
                 PAGE_MAX=PAGE_MAX,
@@ -932,16 +889,19 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
         return {"text": "No paper has been found."}
 
 
-def flip_page_kw(value, time, PAGE_MAX):
+def flip_page_kw(value, time, channel_id, PAGE_MAX):
     kw_list_id, page = tuple(value.split(","))
     page = int(page)
     try:
         kw_list = RESULTS.find({"_id": ObjectId(kw_list_id)}).next()
+        papers = inList_check(
+            kw_list["papers"][(page * 5) : (page * 5 + 5)], channel_id
+        )
         return {
             "blocks": render_template(
                 "kw_result.json.jinja2",
                 keywords=kw_list["keywords"],
-                kw_list=kw_list["papers"][(page * 5) : (page * 5 + 5)],
+                kw_list=papers,
                 kw_list_id=kw_list["_id"],
                 page=page,
                 PAGE_MAX=PAGE_MAX,
@@ -976,15 +936,7 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
 
     try:
         rec_or_ref_or_kw_result = RESULTS.find({"_id": ObjectId(ind)}).next()
-        for paper in (rec_or_ref_or_kw_result["papers"])[(page * 5) :]:
-            if str(paper["_id"]) + ',' + paper["source"] in set(marked):
-                paper["inList"] = True
-            else:
-                paper["inList"] = False
-        RESULTS.update_one(
-            {"_id": ObjectId(ind)},
-            {"$set": {"papers": rec_or_ref_or_kw_result["papers"]}},
-        )
+        papers = inList_check(rec_or_ref_or_kw_result["papers"][(page * 5) : (page * 5 + 5)], channel_id) 
         if rec_or_ref_or_kw == "rec":
             """These codes are for evaluation"""
             log = EVALUATION.find({"_id": ObjectId(ind)}).next()
@@ -1002,9 +954,7 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
                 "blocks": render_template(
                     "rec_result.json.jinja2",
                     context=rec_or_ref_or_kw_result["context"],
-                    rec_list=rec_or_ref_or_kw_result["papers"][
-                        (page * 5) : (page * 5 + 5)
-                    ],
+                    rec_list=papers,
                     rec_list_id=rec_or_ref_or_kw_result["_id"],
                     ref_list_id=rec_or_ref_or_kw_result["refId"],
                     page=page,
@@ -1018,9 +968,7 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
                 "blocks": render_template(
                     "ref_result.json.jinja2",
                     context=rec_or_ref_or_kw_result["context"],
-                    ref_list=rec_or_ref_or_kw_result["papers"][
-                        (page * 5) : (page * 5 + 5)
-                    ],
+                    ref_list=papers,
                     ref_list_id=rec_or_ref_or_kw_result["_id"],
                     next_page=True
                     if len(rec_or_ref_or_kw_result["papers"][(page * 5) :]) > 5
@@ -1036,9 +984,7 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
                 "blocks": render_template(
                     "kw_result.json.jinja2",
                     keywords=rec_or_ref_or_kw_result["keywords"],
-                    kw_list=rec_or_ref_or_kw_result["papers"][
-                        (page * 5) : (page * 5 + 5)
-                    ],
+                    kw_list=papers,
                     kw_list_id=rec_or_ref_or_kw_result["_id"],
                     page=page,
                     PAGE_MAX=PAGE_MAX,
