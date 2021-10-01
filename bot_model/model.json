@@ -411,7 +411,7 @@
                     "value": {
                         "id": "35ee8db6359b29efee8bb915[url]",
                         "name": "URL",
-                        "value": "http://rasa:5005"
+                        "value": "http://localhost:5005"
                     }
                 }
             }

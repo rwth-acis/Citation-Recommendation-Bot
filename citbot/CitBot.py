@@ -718,7 +718,7 @@ def del_paper_in_list(value, time, channel_id):
         marked_papers = MARK_LISTS.find({"_id": channel_id}).next()["marked"]
     except StopIteration:
         return {
-            "text": "No papers in your marking lists, please add items into the marking list at first 🥺"
+            "text": "No papers in your marking list, please add items into the marking list at first 🥺"
         }
 
     try:

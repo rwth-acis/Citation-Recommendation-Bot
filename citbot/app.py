@@ -27,6 +27,14 @@ DBLP = DB_CITREC["DBLP"]
 
 @app.route("/rec/<payload>")
 def rec(payload):
+    """Gnerate rec results
+
+    Args:
+        payload (string): a json string, contains field "context" and "channel"
+
+    Returns:
+        string: a block message that should be sent to slack
+    """
     payload = json.loads(payload)
     citrec = CitRec()
     rec_list, ref_list = citrec(context=payload["context"], k=K)
