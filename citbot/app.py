@@ -27,13 +27,13 @@ DBLP = DB_CITREC["DBLP"]
 
 @app.route("/rec/<payload>")
 def rec(payload):
-    """Gnerate rec results
+    """(command "!rec") Gnerate rec results
 
     Args:
-        payload (string): a json string, contains field "context" and "channel"
+        payload (string): a json string, contains fields "context" and "channel"
 
     Returns:
-        string: a block message that should be sent to slack
+        string: a block message contains recommendation result that should be sent to slack
     """
     payload = json.loads(payload)
     citrec = CitRec()
@@ -49,6 +49,14 @@ def rec(payload):
 
 @app.route("/actions/<payload>")
 def actions(payload):
+    """Interacte with actions
+
+    Args:
+        payload  (string): a json string, contains fields "actionInfo" and "channel" and "time"
+
+    Returns:
+        string: a message that should be sent to slack
+    """
     payload = json.loads(payload)
     actionInfo = json.loads(payload["actionInfo"])
     print(payload)
@@ -106,6 +114,7 @@ def actions(payload):
             channel_id=payload["channel"],
         )
 
+    # when clicking In the list button
     elif actionInfo["actionId"] == "inList":
         return CitBot.remove_from_list(
             value=actionInfo["value"],
@@ -114,20 +123,28 @@ def actions(payload):
             PAGE_MAX=PAGE_MAX,
         )
 
+    # when clicking delete all button in the marking list message
     elif actionInfo["actionId"] == "delall":
         return CitBot.delete_all(channel_id=payload["channel"])
 
+    # when clicking previous page and next page in keyword search result
     elif actionInfo["actionId"] == "next_kw" or actionInfo["actionId"] == "previous_kw":
         return CitBot.flip_page_kw(
-            value=actionInfo["value"], time=payload["time"], channel_id=payload["channel"], PAGE_MAX=PAGE_MAX
+            value=actionInfo["value"],
+            time=payload["time"],
+            channel_id=payload["channel"],
+            PAGE_MAX=PAGE_MAX,
         )
 
+    # when submitting feedback (modal message)
     elif actionInfo["actionId"] == "feedback_submit":
         return CitBot.handle_feedback(value=actionInfo["value"])
 
+    # when clicking generate bibtex button in the marking list
     elif actionInfo["actionId"] == "bibtex":
         return CitBot.generate_bibtex_list(value=actionInfo["value"])
 
+    # when cliking send feedback button
     elif actionInfo["actionId"] == "feedback":
         return CitBot.send_feedback_modal(
             trigger_id=actionInfo["triggerId"],
@@ -135,6 +152,7 @@ def actions(payload):
             channel_id=payload["channel"],
         )
 
+    # when clicking get help button
     elif actionInfo["actionId"] == "help":
         return {"text": render_template("indications.json.jinja2")}
 
@@ -144,6 +162,14 @@ def actions(payload):
 
 @app.route("/lists/<payload>")
 def lists(payload):
+    """(Command "!list") Collection information for papers in the marking list and send a message shows the marking list
+
+    Args:
+        payload (string): a json string, contains field "channel"
+
+    Returns:
+        string: a block message contains marking list that should be sent to slack
+    """
     payload = json.loads(payload)
     channel_id = payload["channel"]
     list_id, marked_papers = CitBot.find_papers_in_list(channel_id)
@@ -165,6 +191,14 @@ def lists(payload):
 
 @app.route("/keywords/<payload>")
 def keywords(payload):
+    """(Command "!kw") search for papers based on keyworks send a message shows the result
+
+    Args:
+        payload (string): a json string, contains fields "keywords" and "channel"
+
+    Returns:
+        string: a block message contains keyword search result that should be sent to slack
+    """
     payload = json.loads(payload)
     print(payload)
     return CitBot.keywords_search(
