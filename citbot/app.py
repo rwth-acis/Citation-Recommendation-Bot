@@ -23,6 +23,9 @@ RESULTS = DB_CITBOT["Results"]
 DB_CITREC = CLIENT["CitRec"]
 AMINER = DB_CITREC["AMiner"]
 DBLP = DB_CITREC["DBLP"]
+"""These codes are for evaluation"""
+TIMES = DB_CITBOT["Times"]
+"""""" """""" """"end""" """""" """""" ""
 
 
 @app.route("/rec/<payload>")
@@ -36,13 +39,23 @@ def rec(payload):
         string: a block message contains recommendation result that should be sent to slack
     """
     payload = json.loads(payload)
+    print(payload)
+    channel_id = payload["channel"]
+    context = payload["context"]
     citrec = CitRec()
-    rec_list, ref_list = citrec(context=payload["context"], k=K)
+    rec_list, ref_list = citrec(context=context, k=K)
+    """These codes are for evaluation"""
+    try:
+        rec_times = TIMES.find({"_id": channel_id}).next()["rec"]
+        TIMES.update_one({"_id": channel_id}, {"$set": {"rec": rec_times + 1}})
+    except StopIteration:
+        TIMES.insert_one({"_id": channel_id, "rec": 1, "kw": 0, "list": 0, "bib": 0})
+    """""" """""" """"end""" """""" """""" ""
     return CitBot.generate_rec_result(
-        context=payload["context"],
+        context=context,
         rec_list=rec_list,
         ref_list=ref_list,
-        channel_id=payload["channel"],
+        channel_id=channel_id,
         PAGE_MAX=PAGE_MAX,
     )
 
@@ -142,6 +155,14 @@ def actions(payload):
 
     # when clicking generate bibtex button in the marking list
     elif actionInfo["actionId"] == "bibtex":
+        """These codes are for evaluation"""
+        channel_id=payload["channel"]
+        try:
+            bib_times = TIMES.find({"_id": channel_id}).next()["bib"]
+            TIMES.update_one({"_id": channel_id}, {"$set": {"bib": bib_times + 1}})
+        except StopIteration:
+            TIMES.insert_one({"_id": channel_id, "rec": 0, "kw": 0, "list": 0, "bib": 1})
+        """""" """""" """"end""" """""" """""" ""
         return CitBot.generate_bibtex_list(value=actionInfo["value"])
 
     # when cliking send feedback button
@@ -173,9 +194,16 @@ def lists(payload):
     payload = json.loads(payload)
     channel_id = payload["channel"]
     list_id, marked_papers = CitBot.find_papers_in_list(channel_id)
+    """These codes are for evaluation"""
+    try:
+        list_times = TIMES.find({"_id": channel_id}).next()["list"]
+        TIMES.update_one({"_id": channel_id}, {"$set": {"list": list_times + 1}})
+    except StopIteration:
+        TIMES.insert_one({"_id": channel_id, "rec": 0, "kw": 0, "list": 1, "bib": 0})
+    """""" """""" """"end""" """""" """""" ""
     if (not list_id) or marked_papers == []:
         return {
-            "text": "No papers in your marking list (or data expired due to long periods (over 60 days) of inactivity), please add items into the marking list at first 🥺"
+            "text": "No papers in your marking list, please add items into the marking list at first 🥺"
         }
     else:
         return {
@@ -201,9 +229,18 @@ def keywords(payload):
     """
     payload = json.loads(payload)
     print(payload)
+    keywords = payload["keywords"]
+    channel_id = payload["channel"]
+    """These codes are for evaluation"""
+    try:
+        kw_times = TIMES.find({"_id": channel_id}).next()["kw"]
+        TIMES.update_one({"_id": channel_id}, {"$set": {"kw": kw_times + 1}})
+    except StopIteration:
+        TIMES.insert_one({"_id": channel_id, "rec": 0, "kw": 1, "list": 0, "bib": 0})
+    """""" """""" """"end""" """""" """""" ""
     return CitBot.keywords_search(
-        keywords=payload["keywords"],
-        channel_id=payload["channel"],
+        keywords=keywords,
+        channel_id=channel_id,
         k=K,
         PAGE_MAX=PAGE_MAX,
     )
