@@ -6,6 +6,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV k=50
 ENV server_address="mongodb:27017"
+ENV TOKENIZERS_PARALLELISM=true 
 
 COPY requirements.txt requirements.txt
 

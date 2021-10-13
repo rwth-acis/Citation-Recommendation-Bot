@@ -17,8 +17,8 @@ from unidecode import unidecode
 from betterbib.tools import pybtex_to_bibtex_string
 import configparser
 
-# Only 3 threads for finding bibtex (avoid blocking)
-POOL = ThreadPoolExecutor(max_workers=3)
+# Only 5 threads for finding bibtex (avoid blocking)
+POOL = ThreadPoolExecutor(max_workers=5)
 
 config = configparser.ConfigParser()
 config.read("config.ini")
