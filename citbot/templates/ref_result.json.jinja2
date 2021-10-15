@@ -3,7 +3,7 @@
         "type": "section",
         "text": {
             "type": "plain_text",
-            "text": "Here are some classic papers I found for your input ☺️ ",
+            "text": "Here are some classic papers I found for your input ☺️ The numbers are how many times the paper has been cited by the recommended papers in the previous message.",
             "emoji": true
         }
     },
@@ -30,7 +30,7 @@
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": "*{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
+            "text": "*{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}\nCited by: {{paper.citnum}}"
         },
         {% if paper.inList != true %}
         "accessory": {

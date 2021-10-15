@@ -28,6 +28,13 @@ TIMES = DB_CITBOT["Times"]
 """""" """""" """"end""" """""" """""" ""
 
 
+@app.route("/rec")
+def rec_without_context():
+    return {
+        "text": 'Please add citation context after the command "!rec", e.g., "!rec citation recommendation using machining learning methods".'
+    }
+
+
 @app.route("/rec/<payload>")
 def rec(payload):
     """(command "!rec") Gnerate rec results
@@ -156,12 +163,14 @@ def actions(payload):
     # when clicking generate bibtex button in the marking list
     elif actionInfo["actionId"] == "bibtex":
         """These codes are for evaluation"""
-        channel_id=payload["channel"]
+        channel_id = payload["channel"]
         try:
             bib_times = TIMES.find({"_id": channel_id}).next()["bib"]
             TIMES.update_one({"_id": channel_id}, {"$set": {"bib": bib_times + 1}})
         except StopIteration:
-            TIMES.insert_one({"_id": channel_id, "rec": 0, "kw": 0, "list": 0, "bib": 1})
+            TIMES.insert_one(
+                {"_id": channel_id, "rec": 0, "kw": 0, "list": 0, "bib": 1}
+            )
         """""" """""" """"end""" """""" """""" ""
         return CitBot.generate_bibtex_list(value=actionInfo["value"])
 
@@ -217,6 +226,13 @@ def lists(payload):
         }
 
 
+@app.route("/keywords")
+def kw_without_context():
+    return {
+        "text": 'Please add keywords after the command "!kw", e.g., "!kw citation recommendation".'
+    }
+
+
 @app.route("/keywords/<payload>")
 def keywords(payload):
     """(Command "!kw") search for papers based on keyworks send a message shows the result
@@ -244,3 +260,8 @@ def keywords(payload):
         k=K,
         PAGE_MAX=PAGE_MAX,
     )
+
+
+@app.route("/greeting")
+def greeting():
+    return render_template("greeting.json.jinja2")

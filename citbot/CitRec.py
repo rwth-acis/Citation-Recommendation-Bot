@@ -61,9 +61,9 @@ class CitRec:
         ids_relevances_citavi, ids_relevances = self.find_topk_relevant_papers(
             embedding, k
         )
-        ids_ref = self.consider_references(ids_relevances_citavi, threshold=k / 10)
+        ids_citnum = self.consider_references(ids_relevances_citavi, threshold=k / 10)
         rec_list = self.find_papers_with_ids_relevances(ids_relevances)
-        rec_list_ref = self.find_papers_with_ids(ids_ref)
+        rec_list_ref = self.find_papers_with_ids_citnum(ids_citnum)
         return (rec_list, rec_list_ref)
 
     def generate_embedding(self, context):
@@ -130,7 +130,7 @@ class CitRec:
 
         return (ids_relevances_citavi, ids_relevances[:k])
 
-    def consider_references(self, ids_relevances_citavi, threshold=5.0):
+    def consider_references(self, ids_relevances_citavi, threshold):
         frequency = {}
         for i, _, _ in ids_relevances_citavi:
             references = (
@@ -147,12 +147,15 @@ class CitRec:
             frequency.items(), key=lambda kv: (kv[1], kv[0]), reverse=True
         )
 
-        ids_ref = []
-        for i, freq in frequency:
-            if freq >= threshold:
-                ids_ref.append(i)
+        ids_citnum = []
+        i = 0
+        for _, freq in frequency:
+            if freq < threshold:
+                ids_citnum = frequency[:i]
+                break
+            i += 1
 
-        return ids_ref
+        return ids_citnum
 
     def find_papers_with_ids_relevances(self, ids_relevances):
         rec_list = []
@@ -219,9 +222,9 @@ class CitRec:
 
         return rec_list
 
-    def find_papers_with_ids(self, ids):
+    def find_papers_with_ids_citnum(self, ids_citnum):
         rec_list_ref = []
-        for i in ids:
+        for i, citnum in ids_citnum:
             dic = self.aminer.find(
                 {"_id": i},
                 {
@@ -232,6 +235,7 @@ class CitRec:
                     "url": 1,
                 },
             ).next()
+            dic["citnum"] = citnum
             dic["source"] = "aminer"
             rec_list_ref.append(dic)
 

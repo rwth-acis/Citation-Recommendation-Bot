@@ -28,8 +28,8 @@
                     "value": "Group1"
                 }
             },
-            "left": 5113.071428571428,
-            "top": 4253.428571428572,
+            "left": 4475.303571428572,
+            "top": 4252.178571428572,
             "width": 48,
             "height": 48,
             "zIndex": 16001,
@@ -50,7 +50,7 @@
                     "value": {
                         "id": "f5c35598f04df4905a97c6db[address]",
                         "name": "Address",
-                        "value": "http://localhost:8080"
+                        "value": "https://milki-psy.dbis.rwth-aachen.de/sbf"
                     }
                 },
                 "3640924305c3d50b3a2de10d": {
@@ -74,8 +74,8 @@
                     "value": "CitBot"
                 }
             },
-            "left": 5113.071428571428,
-            "top": 4351.428571428572,
+            "left": 4475.303571428572,
+            "top": 4350.178571428572,
             "width": 48,
             "height": 48,
             "zIndex": 16002,
@@ -102,8 +102,8 @@
                     "value": "CitBot"
                 }
             },
-            "left": 4689.571428571428,
-            "top": 4449.428571428572,
+            "left": 4632.303571428572,
+            "top": 4448.178571428572,
             "width": 49,
             "height": 48,
             "zIndex": 16003,
@@ -134,7 +134,7 @@
                     "value": {
                         "id": "d085128abaeecff90eb95376[authentication token]",
                         "name": "Authentication Token",
-                        "value": "<your token here>"
+                        "value": ""
                     }
                 }
             }
@@ -149,7 +149,7 @@
                     "value": ""
                 }
             },
-            "left": 3838.4285714285716,
+            "left": 5053.446428571428,
             "top": 4547.428571428572,
             "width": 48,
             "height": 48,
@@ -195,8 +195,8 @@
                     "value": ""
                 }
             },
-            "left": 3838.4285714285716,
-            "top": 4647,
+            "left": 5053.446428571428,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16007,
@@ -208,7 +208,7 @@
                     "value": {
                         "id": "f30bc7ae58e1ebcd3fcd057e[message]",
                         "name": "Message",
-                        "value": "Hello, my name is CitBot. I can recommend papers, search papers based on keywords and manage a paper list for you.\\n- Send me \"!rec <citation context>\". I will find some related papers for the context based on their semantics. Please keep in mind that I only compare the context with the titles and abstracts of the papers in my dataset, so send me a sentence that summarizes the paper you want to find would lead to a better recommendation. In the result message, you can add papers to your marking list, where you can generate a BibTeX document for these papers.\\n- Send me \"!kw <keywords>\". I will find some papers containing the keywords in their title. Here you can also add papers to your marking list, where you can generate a BibTeX document for these papers. To find a specific paper with some proper nouns, I strongly recommend you to search them by keywords, instead of using !rec command.\\n- Send me \"!list\". I will send you the marking list, where you can find all the papers you have marked, and get the BibTeX document by clicking the \"Generate BibTex\" button.\\n- If you found some papers in the result message are with wrong information, you can send feedback by clicking the \"Feedback\" button in the result message. After clicking the \"Feedback\" button, a window will pop up, where you can write down the feedback. Moreover, if you have other suggestions, you can also write them in the feedback window. I am glad to receive your feedback and make myself more powerful."
+                        "value": ""
                     }
                 },
                 "5f2b4ee11564428b5dc3fe28": {
@@ -241,8 +241,8 @@
                     "value": ""
                 }
             },
-            "left": 3936.4285714285716,
-            "top": 4647,
+            "left": 4955.446428571428,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16010,
@@ -254,7 +254,7 @@
                     "value": {
                         "id": "4d1f2166674092ae9485b0bf[message]",
                         "name": "Message",
-                        "value": "Sorry, I can't understand what you mean.\\n- Send me \"!rec <citation context>\". I will find some related papers for the context based on their semantics. Please keep in mind that I only compare the context with the titles and abstracts of the papers in my dataset, so send me a sentence that summarizes the paper you want to find would lead to a better recommendation. In the result message, you can add papers to your marking list, where you can generate a BibTeX document for these papers.\\n- Send me \"!kw <keywords>\". I will find some papers containing the keywords in their title. Here you can also add papers to your marking list, where you can generate a BibTeX document for these papers. To find a specific paper with some proper nouns, I strongly recommend you to search them by keywords, instead of using !rec command.\\n- Send me \"!list\". I will send you the marking list, where you can find all the papers you have marked, and get the BibTeX document by clicking the \"Generate BibTex\" button.\\n- If you found some papers in the result message are with wrong information, you can send feedback by clicking the \"Feedback\" button in the result message. After clicking the \"Feedback\" button, a window will pop up, where you can write down the feedback. Moreover, if you have other suggestions, you can also write them in the feedback window. I am glad to receive your feedback and make myself more powerful."
+                        "value": ""
                     }
                 },
                 "5f2b4ee11564428b5dc3fe28": {
@@ -287,7 +287,7 @@
                     "value": ""
                 }
             },
-            "left": 3936.4285714285716,
+            "left": 4955.446428571428,
             "top": 4547.428571428572,
             "width": 48,
             "height": 48,
@@ -333,8 +333,8 @@
                     "value": ""
                 }
             },
-            "left": 4847.821428571428,
-            "top": 4746.571428571428,
+            "left": 4804.125,
+            "top": 4747.821428571428,
             "width": 48,
             "height": 47,
             "zIndex": 16012,
@@ -380,8 +380,8 @@
                     "value": "ChitChat"
                 }
             },
-            "left": 5161.571428571428,
-            "top": 4449.428571428572,
+            "left": 4074.3035714285716,
+            "top": 4448.178571428572,
             "width": 48,
             "height": 48,
             "zIndex": 16017,
@@ -411,7 +411,7 @@
                     "value": {
                         "id": "35ee8db6359b29efee8bb915[url]",
                         "name": "URL",
-                        "value": "http://localhost:5005"
+                        "value": "http://rasa:5005"
                     }
                 }
             }
@@ -426,8 +426,8 @@
                     "value": ""
                 }
             },
-            "left": 4166,
-            "top": 4647,
+            "left": 4803.875,
+            "top": 4648.25,
             "width": 115.14285714285711,
             "height": 51.14285714285717,
             "zIndex": 16008,
@@ -472,8 +472,8 @@
                     "value": ""
                 }
             },
-            "left": 4034.4285714285716,
-            "top": 4647,
+            "left": 3986.3035714285716,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16018,
@@ -500,7 +500,7 @@
                     "value": ""
                 }
             },
-            "left": 4100.214285714286,
+            "left": 4417.303571428572,
             "top": 4547.428571428572,
             "width": 46,
             "height": 48,
@@ -546,8 +546,8 @@
                     "value": ""
                 }
             },
-            "left": 4955.821428571428,
-            "top": 4746.571428571428,
+            "left": 4612.803571428572,
+            "top": 4747.821428571428,
             "width": 48,
             "height": 48,
             "zIndex": 16021,
@@ -593,7 +593,7 @@
                     "value": ""
                 }
             },
-            "left": 4297.571428571428,
+            "left": 4632.303571428572,
             "top": 4547.428571428572,
             "width": 48,
             "height": 47,
@@ -639,8 +639,8 @@
                     "value": ""
                 }
             },
-            "left": 4297.571428571428,
-            "top": 4647,
+            "left": 4632.303571428572,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16023,
@@ -685,8 +685,8 @@
                     "value": ""
                 }
             },
-            "left": 5053.821428571428,
-            "top": 4746.571428571428,
+            "left": 4221.553571428572,
+            "top": 4747.821428571428,
             "width": 48,
             "height": 48,
             "zIndex": 16025,
@@ -732,7 +732,7 @@
                     "value": ""
                 }
             },
-            "left": 4444.571428571428,
+            "left": 4113.553571428572,
             "top": 4547.428571428572,
             "width": 48,
             "height": 48,
@@ -778,8 +778,8 @@
                     "value": ""
                 }
             },
-            "left": 4395.571428571428,
-            "top": 4647,
+            "left": 4182.303571428572,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16027,
@@ -806,8 +806,8 @@
                     "value": ""
                 }
             },
-            "left": 4493.571428571428,
-            "top": 4647,
+            "left": 4084.3035714285716,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16028,
@@ -852,7 +852,7 @@
                     "value": ""
                 }
             },
-            "left": 4640.571428571428,
+            "left": 3986.3035714285716,
             "top": 4547.428571428572,
             "width": 48,
             "height": 48,
@@ -898,8 +898,8 @@
                     "value": ""
                 }
             },
-            "left": 4591.571428571428,
-            "top": 4647,
+            "left": 4300.303571428572,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16030,
@@ -926,8 +926,8 @@
                     "value": ""
                 }
             },
-            "left": 4689.571428571428,
-            "top": 4647,
+            "left": 3848.3035714285716,
+            "top": 4648.25,
             "width": 48,
             "height": 47,
             "zIndex": 16031,
@@ -972,8 +972,8 @@
                     "value": ""
                 }
             },
-            "left": 5151.821428571428,
-            "top": 4746.571428571428,
+            "left": 3887.5535714285716,
+            "top": 4747.821428571428,
             "width": 48,
             "height": 48,
             "zIndex": 16032,
@@ -1019,10 +1019,10 @@
                     "value": ""
                 }
             },
-            "left": 4787.571428571428,
+            "left": 5151.446428571428,
             "top": 4547.428571428572,
             "width": 48,
-            "height": 48,
+            "height": 50.5,
             "zIndex": 16033,
             "type": "Incoming Message",
             "attributes": {
@@ -1065,8 +1065,8 @@
                     "value": ""
                 }
             },
-            "left": 4787.571428571428,
-            "top": 4647,
+            "left": 5151.446428571428,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16034,
@@ -1078,7 +1078,7 @@
                     "value": {
                         "id": "9f210f92882db6185d2d8b22[message]",
                         "name": "Message",
-                        "value": "- Send me \"!rec <citation context>\". I will find some related papers for the context based on their semantics. Please keep in mind that I only compare the context with the titles and abstracts of the papers in my dataset, so send me a sentence that summarizes the paper you want to find would lead to a better recommendation. In the result message, you can add papers to your marking list, where you can generate a BibTeX document for these papers.\\n- Send me \"!kw <keywords>\". I will find some papers containing the keywords in their title. Here you can also add papers to your marking list, where you can generate a BibTeX document for these papers. To find a specific paper with some proper nouns, I strongly recommend you to search them by keywords, instead of using !rec command.\\n- Send me \"!list\". I will send you the marking list, where you can find all the papers you have marked, and get the BibTeX document by clicking the \"Generate BibTex\" button.\\n- If you found some papers in the result message are with wrong information, you can send feedback by clicking the \"Feedback\" button in the result message. After clicking the \"Feedback\" button, a window will pop up, where you can write down the feedback. Moreover, if you have other suggestions, you can also write them in the feedback window. I am glad to receive your feedback and make myself more powerful."
+                        "value": ""
                     }
                 },
                 "5f2b4ee11564428b5dc3fe28": {
@@ -1111,7 +1111,7 @@
                     "value": ""
                 }
             },
-            "left": 4885.571428571428,
+            "left": 4534.303571428572,
             "top": 4547.428571428572,
             "width": 48,
             "height": 48,
@@ -1157,8 +1157,8 @@
                     "value": ""
                 }
             },
-            "left": 4885.571428571428,
-            "top": 4647,
+            "left": 4534.303571428572,
+            "top": 4648.25,
             "width": 48,
             "height": 48,
             "zIndex": 16036,
@@ -1189,6 +1189,53 @@
                         "id": "b5e4cbd059c3bc7b9d8520a5[errormessage]",
                         "name": "ErrorMessage",
                         "value": ""
+                    }
+                }
+            }
+        },
+        "d496322d7e4f87f0ba95437e": {
+            "label": {
+                "id": "d496322d7e4f87f0ba95437e[label]",
+                "name": "Label",
+                "value": {
+                    "id": "d496322d7e4f87f0ba95437e[label]",
+                    "name": "Label",
+                    "value": ""
+                }
+            },
+            "left": 5151.696428571428,
+            "top": 4747.821428571428,
+            "width": 48,
+            "height": 48,
+            "zIndex": 16037,
+            "type": "Bot Action",
+            "attributes": {
+                "5529bde8544426cd5580efc1": {
+                    "id": "d496322d7e4f87f0ba95437e[action type]",
+                    "name": "Action Type",
+                    "value": {
+                        "id": "d496322d7e4f87f0ba95437e[action type]",
+                        "name": "Action Type",
+                        "value": "Service"
+                    },
+                    "option": "Service"
+                },
+                "c436dc0e764a63371820e857": {
+                    "id": "d496322d7e4f87f0ba95437e[function name]",
+                    "name": "Function Name",
+                    "value": {
+                        "id": "d496322d7e4f87f0ba95437e[function name]",
+                        "name": "Function Name",
+                        "value": "greeting"
+                    }
+                },
+                "bc1335cdf59dedb856e635be": {
+                    "id": "d496322d7e4f87f0ba95437e[service alias]",
+                    "name": "Service Alias",
+                    "value": {
+                        "id": "d496322d7e4f87f0ba95437e[service alias]",
+                        "name": "Service Alias",
+                        "value": "CitrecHandler"
                     }
                 }
             }
@@ -1704,6 +1751,81 @@
             "target": "b5e4cbd059c3bc7b9d8520a5",
             "attributes": {},
             "type": "triggers"
+        },
+        "f04055bb72dced0892679845": {
+            "label": {
+                "id": "f04055bb72dced0892679845[label]",
+                "name": "Label",
+                "value": {
+                    "id": "f04055bb72dced0892679845[label]",
+                    "name": "Label",
+                    "value": ""
+                }
+            },
+            "source": "4d1f2166674092ae9485b0bf",
+            "target": "d496322d7e4f87f0ba95437e",
+            "attributes": {},
+            "type": "uses"
+        },
+        "306ddf895122af14ba81a095": {
+            "label": {
+                "id": "306ddf895122af14ba81a095[label]",
+                "name": "Label",
+                "value": {
+                    "id": "306ddf895122af14ba81a095[label]",
+                    "name": "Label",
+                    "value": ""
+                }
+            },
+            "source": "f30bc7ae58e1ebcd3fcd057e",
+            "target": "d496322d7e4f87f0ba95437e",
+            "attributes": {},
+            "type": "uses"
+        },
+        "3f357f55ffd4539165afdf98": {
+            "label": {
+                "id": "3f357f55ffd4539165afdf98[label]",
+                "name": "Label",
+                "value": {
+                    "id": "3f357f55ffd4539165afdf98[label]",
+                    "name": "Label",
+                    "value": ""
+                }
+            },
+            "source": "9f210f92882db6185d2d8b22",
+            "target": "d496322d7e4f87f0ba95437e",
+            "attributes": {},
+            "type": "uses"
+        },
+        "f5fcc9d611a6bd5897cb60ad": {
+            "label": {
+                "id": "f5fcc9d611a6bd5897cb60ad[label]",
+                "name": "Label",
+                "value": {
+                    "id": "f5fcc9d611a6bd5897cb60ad[label]",
+                    "name": "Label",
+                    "value": ""
+                }
+            },
+            "source": "960fcc299368c11690528afa",
+            "target": "d496322d7e4f87f0ba95437e",
+            "attributes": {},
+            "type": "performs"
+        },
+        "af7de09fc52dd90944eb701b": {
+            "label": {
+                "id": "af7de09fc52dd90944eb701b[label]",
+                "name": "Label",
+                "value": {
+                    "id": "af7de09fc52dd90944eb701b[label]",
+                    "name": "Label",
+                    "value": ""
+                }
+            },
+            "source": "d496322d7e4f87f0ba95437e",
+            "target": "d085128abaeecff90eb95376",
+            "attributes": {},
+            "type": "uses"
         }
     }
 }
