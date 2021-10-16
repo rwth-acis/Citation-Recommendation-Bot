@@ -28,13 +28,6 @@ TIMES = DB_CITBOT["Times"]
 """""" """""" """"end""" """""" """""" ""
 
 
-@app.route("/rec")
-def rec_without_context():
-    return {
-        "text": 'Please add citation context after the command "!rec", e.g., "!rec citation recommendation using machining learning methods".'
-    }
-
-
 @app.route("/rec/<payload>")
 def rec(payload):
     """(command "!rec") Gnerate rec results
@@ -49,6 +42,10 @@ def rec(payload):
     print(payload)
     channel_id = payload["channel"]
     context = payload["context"]
+    if not context:
+        return {
+            "text": 'Please add citation context after the command "!rec", e.g., "!rec citation recommendation using machining learning methods".'
+        }
     citrec = CitRec()
     rec_list, ref_list = citrec(context=context, k=K)
     """These codes are for evaluation"""
@@ -226,13 +223,6 @@ def lists(payload):
         }
 
 
-@app.route("/keywords")
-def kw_without_context():
-    return {
-        "text": 'Please add keywords after the command "!kw", e.g., "!kw citation recommendation".'
-    }
-
-
 @app.route("/keywords/<payload>")
 def keywords(payload):
     """(Command "!kw") search for papers based on keyworks send a message shows the result
@@ -246,6 +236,12 @@ def keywords(payload):
     payload = json.loads(payload)
     print(payload)
     keywords = payload["keywords"]
+
+    if not keywords:
+        return {
+            "text": 'Please add keywords after the command "!kw", e.g., "!kw citation recommendation".'
+        }
+
     channel_id = payload["channel"]
     """These codes are for evaluation"""
     try:
