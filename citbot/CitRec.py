@@ -59,10 +59,10 @@ class CitRec:
     def __call__(self, context, k=50):
         embedding = self.generate_embedding(context)
         ids_relevances_citavi, ids_relevances = self.find_topk_relevant_papers(
-            embedding, k
+            embedding, 50
         )
-        ids_citnum = self.consider_references(ids_relevances_citavi, threshold=k / 10)
-        rec_list = self.find_papers_with_ids_relevances(ids_relevances)
+        ids_citnum = self.consider_references(ids_relevances_citavi, threshold=5)
+        rec_list = self.find_papers_with_ids_relevances(ids_relevances[:k])
         rec_list_ref = self.find_papers_with_ids_citnum(ids_citnum)
         return (rec_list, rec_list_ref)
 

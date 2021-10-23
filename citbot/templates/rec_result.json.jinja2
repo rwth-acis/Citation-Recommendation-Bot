@@ -31,7 +31,7 @@
 		"type": "section",
 		"text": {
 			"type": "mrkdwn",
-			"text": "*{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+			"text": "*{{page * 10 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}\n{% else %}{{paper.url[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
 		},
 		{% if paper.inList != true %}
 		"accessory": {
@@ -62,7 +62,7 @@
 		"type": "section",
 		"text": {
 			"type": "mrkdwn",
-			"text": "*{{page * 5 + loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author|replace("\"", "\\\"")}}, et al. {% else %}{{paper.author[0]|replace("\"", "\\\"")}}, et al. {%endif%}{%endif%}\"{{paper.title|replace("\"", "\\\"")}}\"{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
+			"text": "*{{page * 10 + loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author|replace("\"", "\\\"")}}, et al. {% else %}{{paper.author[0]|replace("\"", "\\\"")}}, et al. {%endif%}{%endif%}\"{{paper.title|replace("\"", "\\\"")}}\"{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}\n{% else %}{{paper.ee[0]}}\n{% endif %}{% endif %}Relevance score: {{"%0.3f"|format(paper.rel_score)}}"
 		},
 		{% if paper.inList != true %}
 		"accessory": {

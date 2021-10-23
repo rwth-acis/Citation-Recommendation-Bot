@@ -290,7 +290,7 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             }
         )
-        papers = inList_check(rec_list[:5], channel_id)
+        papers = inList_check(rec_list[:10], channel_id)
         """These codes are for evaluation"""
         add2list = 0
         for paper in papers:
@@ -330,7 +330,7 @@ def generate_rec_result(context, rec_list, ref_list, channel_id, PAGE_MAX):
                 "expireAt": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             }
         )
-        papers = inList_check(rec_list[:5], channel_id)
+        papers = inList_check(rec_list[:10], channel_id)
         """These codes are for evaluation"""
         add2list = 0
         for paper in papers:
@@ -366,7 +366,7 @@ def flip_page_rec(value, time, channel_id, PAGE_MAX):
     try:
         rec_list = RESULTS.find({"_id": ObjectId(rec_list_id)}).next()
         papers = inList_check(
-            rec_list["papers"][(page * 5) : (page * 5 + 5)], channel_id
+            rec_list["papers"][(page * 10) : (page * 10 + 10)], channel_id
         )
         """These codes are for evaluation"""
         log = EVALUATION.find({"_id": ObjectId(rec_list_id)}).next()
@@ -428,14 +428,14 @@ def flip_page_rec(value, time, channel_id, PAGE_MAX):
 def show_classic_papers(ref_list_id, channel_id):
     try:
         ref_list = RESULTS.find({"_id": ObjectId(ref_list_id)}).next()
-        papers = inList_check(ref_list["papers"][:5], channel_id)
+        papers = inList_check(ref_list["papers"][:10], channel_id)
         return {
             "blocks": render_template(
                 "ref_result.json.jinja2",
                 context=ref_list["context"],
                 ref_list=papers,
                 ref_list_id=ref_list["_id"],
-                next_page=True if len(ref_list["papers"]) > 5 else False,
+                next_page=True if len(ref_list["papers"]) > 10 else False,
                 page=0,
             ),
         }
@@ -451,7 +451,7 @@ def flip_page_ref(value, time, channel_id):
     try:
         ref_list = RESULTS.find({"_id": ObjectId(ref_list_id)}).next()
         papers = inList_check(
-            ref_list["papers"][(page * 5) : (page * 5 + 5)], channel_id
+            ref_list["papers"][(page * 10) : (page * 10 + 10)], channel_id
         )
         return {
             "blocks": render_template(
@@ -459,7 +459,7 @@ def flip_page_ref(value, time, channel_id):
                 context=ref_list["context"],
                 ref_list=papers,
                 ref_list_id=ref_list["_id"],
-                next_page=True if len(ref_list["papers"][(page * 5) :]) > 5 else False,
+                next_page=True if len(ref_list["papers"][(page * 10) :]) > 10 else False,
                 page=page,
             ),
             "updateBlock": "true",
@@ -499,7 +499,7 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
 
     try:
         rec_or_ref_or_kw_result = RESULTS.find({"_id": ObjectId(ind)}).next()
-        for paper in (rec_or_ref_or_kw_result["papers"])[(page * 5) :]:
+        for paper in (rec_or_ref_or_kw_result["papers"])[(page * 10) :]:
             if str(paper["_id"]) + "," + paper["source"] in set(marked):
                 paper["inList"] = True
                 # add bibtex information
@@ -531,7 +531,7 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
                     "rec_result.json.jinja2",
                     context=rec_or_ref_or_kw_result["context"],
                     rec_list=rec_or_ref_or_kw_result["papers"][
-                        (page * 5) : (page * 5 + 5)
+                        (page * 10) : (page * 10 + 10)
                     ],
                     rec_list_id=rec_or_ref_or_kw_result["_id"],
                     ref_list_id=rec_or_ref_or_kw_result["refId"],
@@ -547,11 +547,11 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
                     "ref_result.json.jinja2",
                     context=rec_or_ref_or_kw_result["context"],
                     ref_list=rec_or_ref_or_kw_result["papers"][
-                        (page * 5) : (page * 5 + 5)
+                        (page * 10) : (page * 10 + 10)
                     ],
                     ref_list_id=rec_or_ref_or_kw_result["_id"],
                     next_page=True
-                    if len(rec_or_ref_or_kw_result["papers"][(page * 5) :]) > 5
+                    if len(rec_or_ref_or_kw_result["papers"][(page * 10) :]) > 10
                     else False,
                     page=page,
                 ),
@@ -564,7 +564,7 @@ def add_to_list(value, time, channel_id, PAGE_MAX):
                     "kw_result.json.jinja2",
                     keywords=rec_or_ref_or_kw_result["keywords"],
                     kw_list=rec_or_ref_or_kw_result["papers"][
-                        (page * 5) : (page * 5 + 5)
+                        (page * 10) : (page * 10 + 10)
                     ],
                     kw_list_id=rec_or_ref_or_kw_result["_id"],
                     page=page,
@@ -687,9 +687,9 @@ def flip_page_list(value, time, channel_id):
             "blocks": render_template(
                 "mark_list.json.jinja2",
                 list_id=list_id,
-                marked_papers=marked_papers[(page * 5) : (page * 5 + 5)],
+                marked_papers=marked_papers[(page * 10) : (page * 10 + 10)],
                 page=page,
-                next_page=True if len(marked_papers[(page * 5) :]) > 5 else False,
+                next_page=True if len(marked_papers[(page * 10) :]) > 10 else False,
             ),
             "updateBlock": "true",
             "ts": time,
@@ -701,9 +701,9 @@ def flip_page_list(value, time, channel_id):
             "blocks": render_template(
                 "mark_list.json.jinja2",
                 list_id=list_id,
-                marked_papers=marked_papers[(page * 5) : (page * 5 + 5)],
+                marked_papers=marked_papers[(page * 10) : (page * 10 + 10)],
                 page=page,
-                next_page=True if len(marked_papers[(page * 5) :]) > 5 else False,
+                next_page=True if len(marked_papers[(page * 10) :]) > 10 else False,
             ),
             "updateBlock": "true",
             "ts": time,
@@ -738,9 +738,9 @@ def del_paper_in_list(value, time, channel_id):
             "blocks": render_template(
                 "mark_list.json.jinja2",
                 list_id=list_id,
-                marked_papers=marked_papers[(page * 5) : (page * 5 + 5)],
+                marked_papers=marked_papers[(page * 10) : (page * 10 + 10)],
                 page=page,
-                next_page=True if len(marked_papers[(page * 5) :]) > 5 else False,
+                next_page=True if len(marked_papers[(page * 10) :]) > 10 else False,
             ),
             "updateBlock": "true",
             "ts": time,
@@ -752,9 +752,9 @@ def del_paper_in_list(value, time, channel_id):
             "blocks": render_template(
                 "mark_list.json.jinja2",
                 list_id=list_id,
-                marked_papers=marked_papers[(page * 5) : (page * 5 + 5)],
+                marked_papers=marked_papers[(page * 10) : (page * 10 + 10)],
                 page=page,
-                next_page=True if len(marked_papers[(page * 5) :]) > 5 else False,
+                next_page=True if len(marked_papers[(page * 10) :]) > 10 else False,
             ),
             "updateBlock": "true",
             "ts": time,
@@ -783,7 +783,7 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
             },
         )
         .sort("score", {"$meta": "textScore"})
-        .limit(50)
+        .limit(k)
     )
     dblp_result = list(
         DBLP.find(
@@ -798,7 +798,7 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
             },
         )
         .sort("score", {"$meta": "textScore"})
-        .limit(50)
+        .limit(k)
     )
 
     if aminer_result and dblp_result:
@@ -873,7 +873,7 @@ def keywords_search(keywords, channel_id, k, PAGE_MAX):
             }
         )
 
-        papers = inList_check(kw_list[:5], channel_id)
+        papers = inList_check(kw_list[:10], channel_id)
 
         return {
             "blocks": render_template(
@@ -895,7 +895,7 @@ def flip_page_kw(value, time, channel_id, PAGE_MAX):
     try:
         kw_list = RESULTS.find({"_id": ObjectId(kw_list_id)}).next()
         papers = inList_check(
-            kw_list["papers"][(page * 5) : (page * 5 + 5)], channel_id
+            kw_list["papers"][(page * 10) : (page * 10 + 10)], channel_id
         )
         return {
             "blocks": render_template(
@@ -936,7 +936,7 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
 
     try:
         rec_or_ref_or_kw_result = RESULTS.find({"_id": ObjectId(ind)}).next()
-        papers = inList_check(rec_or_ref_or_kw_result["papers"][(page * 5) : (page * 5 + 5)], channel_id) 
+        papers = inList_check(rec_or_ref_or_kw_result["papers"][(page * 10) : (page * 10 + 10)], channel_id) 
         if rec_or_ref_or_kw == "rec":
             """These codes are for evaluation"""
             log = EVALUATION.find({"_id": ObjectId(ind)}).next()
@@ -971,7 +971,7 @@ def remove_from_list(value, time, channel_id, PAGE_MAX):
                     ref_list=papers,
                     ref_list_id=rec_or_ref_or_kw_result["_id"],
                     next_page=True
-                    if len(rec_or_ref_or_kw_result["papers"][(page * 5) :]) > 5
+                    if len(rec_or_ref_or_kw_result["papers"][(page * 10) :]) > 10
                     else False,
                     page=page,
                     PAGE_MAX=PAGE_MAX,
@@ -1004,11 +1004,11 @@ def send_feedback_modal(trigger_id, value, channel_id):
     try:
         if rec_or_ref_or_kw_or_list in ["rec", "ref", "kw"]:
             papers = RESULTS.find({"_id": ObjectId(ind)}).next()["papers"][
-                (page * 5) : (page * 5 + 5)
+                (page * 10) : (page * 10 + 10)
             ]
         elif rec_or_ref_or_kw_or_list == "list":
             papers = LIST_TEMP.find({"_id": ObjectId(ind)}).next()["papers"][
-                (page * 5) : (page * 5 + 5)
+                (page * 10) : (page * 10 + 10)
             ]
         return {
             "trigger_id": trigger_id,

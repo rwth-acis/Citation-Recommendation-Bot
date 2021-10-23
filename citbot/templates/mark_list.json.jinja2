@@ -16,7 +16,7 @@
 		"type": "section",
 		"text": {
 			"type": "mrkdwn",
-			"text": "*{{page * 5 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
+			"text": "*{{page * 10 + loop.index}}. {% if paper.authors %}{{paper.authors[0].name|replace("\"", "\\\"")}}, et al. {% endif %}{% if paper.title %}\"{{paper.title|replace("\"", "\\\"")}}\"{% endif %}{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.url %}{% if paper.url is string %}{{paper.url}}{% else %}{{paper.url[0]}}{% endif %}{% endif %}"
 		},
 		"accessory": {
 			"type": "button",
@@ -34,7 +34,7 @@
 		"type": "section",
 		"text": {
 			"type": "mrkdwn",
-			"text": "*{{page * 5 + loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author|replace("\"", "\\\"")}}, et al. {% else %}{{paper.author[0]|replace("\"", "\\\"")}}, et al. {%endif%}{%endif%}\"{{paper.title|replace("\"", "\\\"")}}\"{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}{% else %}{{paper.ee[0]}}{% endif %}{% endif %}"
+			"text": "*{{page * 10 + loop.index}}. {% if paper.author %}{% if paper.author is string %}{{paper.author|replace("\"", "\\\"")}}, et al. {% else %}{{paper.author[0]|replace("\"", "\\\"")}}, et al. {%endif%}{%endif%}\"{{paper.title|replace("\"", "\\\"")}}\"{% if paper.year %} ({{paper.year}}){% endif %}*\n{% if paper.ee %}{% if paper.ee is string %}{{paper.ee}}{% else %}{{paper.ee[0]}}{% endif %}{% endif %}"
 		},
 		"accessory": {
 			"type": "button",

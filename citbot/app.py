@@ -9,10 +9,10 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 K = int(config.get("DEFAULT", "k"))
-if K % 5 == 0:
-    PAGE_MAX = K // 5 - 1
+if K % 10 == 0:
+    PAGE_MAX = K // 10 - 1
 else:
-    PAGE_MAX = K // 5
+    PAGE_MAX = K // 10
 
 app = Flask(__name__)
 SERVER_ADDRESS = config.get("DEFAULT", "server_address")
@@ -216,9 +216,9 @@ def lists(payload):
             "blocks": render_template(
                 "mark_list.json.jinja2",
                 list_id=list_id,
-                marked_papers=marked_papers[:5],
+                marked_papers=marked_papers[:10],
                 page=0,
-                next_page=True if len(marked_papers) > 5 else False,
+                next_page=True if len(marked_papers) > 10 else False,
             )
         }
 
