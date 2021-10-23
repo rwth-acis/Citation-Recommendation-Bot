@@ -79,13 +79,11 @@ Export the citavi project as `.ctv6`. Change the filename extension to`zip` and 
 Creating a classic bot app is possible [here](https://api.slack.com/apps?new_classic_app=1). (Wait for the app creation window to pop up, do not click on the green "Create New App" button). Since the las2peersocial-bot-manager-service uses RTM, a classic app, instead of a new app, is needed. 
 
 1. Inside the app settings, create a bot user (on the left side Features: App Home, and then "Add Legacy Bot User")
-2. On the left side Features: Incoming Webhooks: activate with button top right
 3. Add the following oauth scopes under OAuth & Permissons:
    - channels:read
    - chat:write:bot
    - bot
    - users:read.email (users:read included)
-   - incoming-webhook should already be there. If not add under basic information: incoming webhooks: activate incoming webhooks sliding button
    - Please do not update scopes!
 
 Now install the app to your workspace. After this a token will be generated which is used in the redirect url.
