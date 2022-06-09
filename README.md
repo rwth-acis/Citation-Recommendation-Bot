@@ -27,7 +27,10 @@ mongoimport --db CitRec --collection AMiner --jsonArray --legacy --file <path>/d
 
 #### Citavi dataset
 
-Export the citavi project as `.ctv6`. Change the filename extension to`zip` and unzip it, then the `.db` (SQLite) is what we need. 
+In Citavi, create an archive copy (File > This project > Archive project).  
+This will create a file with the file extension `.ctv6archive`, change the filename extension to`zip` and unzip it.  
+Inside is the project database with the file extension `.ctv6`. Rename the file extension to `.db`.  
+The `.db` (SQLite) is what we need
 
 ### Start training
 
