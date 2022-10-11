@@ -3,7 +3,7 @@ flask
 bibtexparser==1.2.0
 requests
 pybtex==0.24.0
-betterbib==4.3.8
+betterbib
 bibtex-dblp==0.5
 numpy
 unidecode
