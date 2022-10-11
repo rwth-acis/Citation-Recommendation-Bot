@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-
 FROM huggingface/transformers-pytorch-cpu
 
 ENV LC_ALL=C.UTF-8
